@@ -39,9 +39,6 @@
         reference: [],
         funButtons: [],
         imagenOption: {},
-    });
-    // 郭家基金 - 功能設定
-    let kf_funSetting = reactive({
         bank_info: {},
         file_info: {},
         member: {},
@@ -188,15 +185,15 @@
                 appSetting.googleMapApiKey = appSettingObj["google_map_api_key"];
 
                 // 郭家基金 - 功能設定值
-                kf_funSetting.bank_info = appSettingObj["kf_bank_info"];
-                kf_funSetting.file_info = appSettingObj["kf_file_info"];
-                kf_funSetting.member = appSettingObj["kf_member"];
-                kf_funSetting.activity_annouce_period.start = appSettingObj["kf_activity_annouce_period"]["value1"];
-                kf_funSetting.activity_annouce_period.end = appSettingObj["kf_activity_annouce_period"]["value2"];
-                kf_funSetting.agent.name = appSettingObj["agent_name"];
-                kf_funSetting.agent.phone = appSettingObj["agent_phone"];
-                kf_funSetting.agent.lineID = appSettingObj["agent_line_id"];
-                kf_funSetting.agent.term = appSettingObj["agent_term"];
+                appSetting.bank_info = appSettingObj["kf_bank_info"];
+                appSetting.file_info = appSettingObj["kf_file_info"];
+                appSetting.member = appSettingObj["kf_member"];
+                appSetting.activity_annouce_period.start = appSettingObj["kf_activity_annouce_period"]["value1"];
+                appSetting.activity_annouce_period.end = appSettingObj["kf_activity_annouce_period"]["value2"];
+                appSetting.agent.name = appSettingObj["agent_name"];
+                appSetting.agent.phone = appSettingObj["agent_phone"];
+                appSetting.agent.lineID = appSettingObj["agent_line_id"];
+                appSetting.agent.term = appSettingObj["agent_term"];
 
                 // appSetting.reference
                 {
@@ -247,21 +244,12 @@
                 {
                     appSetting.funButtons.splice(0, appSetting.funButtons.length);
 
-                    let allFunctionKeys = ["finance", "chat", "imagen", "plan_trip", "trip_schedule", "footmark", "recollection", "achievement", "finance_kf", "rule_kf", "activity_kf", "recall", "qa"];
+                    let allFunctionKeys = ["finance_kf", "rule_kf", "activity_kf", "recall", "qa"];
                     let buildingFunctionKeys = [];
                     let buildingFunctionKeys_kf = [];
                     allFunctionKeys.forEach((funKey, fk_i) => {
                         if(userInfo.funcs.indexOf(funKey) >= 0){
-
-                            if(buildingFunctionKeys.indexOf(funKey) >= 0 && userInfo.role === "admin"){
-                                appSetting.funButtons.push({ key: funKey, display_text: userInfo.languages[funKey] });
-                            }                            
-                            if(buildingFunctionKeys_kf.indexOf(funKey) >= 0 && userInfo.role === "admin_kf"){
-                               appSetting.funButtons.push({ key: funKey, display_text: userInfo.languages[funKey] });
-                            }
-                            if(buildingFunctionKeys.indexOf(funKey) < 0 && buildingFunctionKeys_kf.indexOf(funKey) < 0){
-                               appSetting.funButtons.push({ key: funKey, display_text: userInfo.languages[funKey] });
-                            }
+                            appSetting.funButtons.push({ key: funKey, display_text: userInfo.languages[funKey] });
                         }
                     });
                 }
@@ -401,8 +389,8 @@
         <Recall v-else-if="appSetting.contentComponent === 'recall'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" @popup-message="popupMessage" />
         <Survey v-else-if="appSetting.contentComponent === 'survey'" :title="appSetting.title" :account="userInfo.account" />
         <Finance v-else-if="appSetting.contentComponent === 'finance_kf'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" @popup-message="popupMessage" />
-        <Rule v-else-if="appSetting.contentComponent === 'rule_kf'" :title="appSetting.title" :account="userInfo.account" :funSetting="kf_funSetting" />
-        <Activity v-else-if="appSetting.contentComponent === 'activity_kf'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" :annouce_period_start="kf_funSetting.activity_annouce_period.start" :annouce_period_end="kf_funSetting.activity_annouce_period.end" />
+        <Rule v-else-if="appSetting.contentComponent === 'rule_kf'" :title="appSetting.title" :account="userInfo.account" :funSetting="appSetting" />
+        <Activity v-else-if="appSetting.contentComponent === 'activity_kf'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" :annouce_period_start="appSetting.activity_annouce_period.start" :annouce_period_end="appSetting.activity_annouce_period.end" />
     </div>
 
     <!-- userInfo modal -->
