@@ -14,128 +14,61 @@
         init();
     });
 
-    let finance = reactive({
-        house: {
-            target: 0,
-        },
-        credit: {
-            target: 0,
-            remain: 0,
-        },
-        deposit_Speed:{
-            value1: 0,
-            value2: 0,
-        },
-        deposit_TWD:{
-            value: 0,
-        },
-        deposit_USD_insurance:{
-            value: 0,
-            currency: 0,
-        },
-        deposit_USD_fixed:{
-            value: 0,
-            currency: 0,
-        },
-        stock_nano:{
-            value: 0,
-            currency: 0,
-        },
-        stock_tw0056: {
-            num: 0,
-            price: 0,
-        },
-        stock_tw00878: {
-            num: 0,
-            price: 0,
-        },
-        stock_tw00919: {
-            num: 0,
-            price: 0,
-        },
+    let financeObj = reactive({
+        code_name: "",
+        type: "IN",
+        money: 500,
+        date: moment().format("YYYY-MM-DD"),
+        memo: "",
     });
+    let members = reactive([]);
 
     // 初始化 component
     function init(){
-        console.log("Setting_Finance.init");
-        console.log("props.app_state", props.app_state);
-        console.log("props.title", props.title);
-        console.log("props.account", props.account);
+        console.log("SettingFinance.init");
+        console.log("props.title=" + props.title);
+        console.log("props.account=" + props.account);
 
-        fetchFinance();
+        fetchMembers();
     }
-    // 取得使用者個人 finance 資料
-    function fetchFinance(){
-        let fetchFinancePromise = fetchData({
-            api: "get_finance",
-            data: {
-                account: props.account,
-                f_name: "All",
-            }
-        });
-        Promise.all([fetchFinancePromise]).then((values) => {
-            console.log("fetchFinancePromise.values=", values);
+    // 取得 finance 資料
+    function fetchMembers(){
+        let fetchMembersPromise = fetchData({
+            api: "get_members",
+        }, "KUO-FUNDS");
+        Promise.all([fetchMembersPromise]).then((values) => {
+            console.log("fetchMembersPromise.values=", values[0]);
 
-            values[0].forEach((finObj, fin_i) => {
-                if(finObj["name"] === "house"){
-                    // 購屋資訊
-                    finance.house.target = finObj["value1"];
-                } else if(finObj["name"] === "credit"){
-                    // 信貸資訊
-                    finance.credit.target = finObj["value1"];
-                    finance.credit.remain = finObj["value2"];
-                } else if(finObj["name"] === "stock_0056"){
-                    // 台股資訊
-                    finance.stock_tw0056.num = finObj["value1"];
-                    finance.stock_tw0056.price = 0;
-                } else if(finObj["name"] === "stock_00878"){
-                    // 台股資訊
-                    finance.stock_tw00878.num = finObj["value1"];
-                    finance.stock_tw00878.price = 0;
-                } else if(finObj["name"] === "stock_00919"){
-                    // 台股資訊
-                    finance.stock_tw00919.num = finObj["value1"];
-                    finance.stock_tw00919.price = 0;
-                } else if(finObj["name"] === "stock_nano"){
-                    // 奈米投資訊
-                    finance.stock_nano.value = finObj["value1"];
-                    finance.stock_nano.currency = 0;
-                } else if(finObj["name"] === "speed"){
-                    // 台幣存款速度
-                    finance.deposit_Speed.value1 = finObj["value1"];
-                    finance.deposit_Speed.value2 = finObj["value2"];
-                } else if(finObj["name"] === "deposit" && finObj["currency"] === "TWD"){
-                    // 台幣存款資訊
-                    finance.deposit_TWD.value = finObj["value1"];
-                } else if(finObj["name"] === "deposit_insurance" && finObj["currency"] === "USD"){
-                    // 美金存款資訊 - 保險
-                    finance.deposit_USD_insurance.value = finObj["value1"];
-                    finance.deposit_USD_insurance.currency = 0;
-                } else if(finObj["name"] === "deposit_fixed" && finObj["currency"] === "USD"){
-                    // 美金存款資訊 - 定存
-                    finance.deposit_USD_fixed.value = finObj["value1"];
-                    finance.deposit_USD_fixed.currency = 0;
-                }
+            // 郭家基金 - 成員
+            members.splice(0, members.length);
+
+            let memObjs = values[0];
+            memObjs.sort((x, y) => {
+                if(x["code_name"] > y["code_name"]) return 1;
+                if(x["code_name"] < y["code_name"]) return -1;
+                if(x["code_name"] === y["code_name"]) return 0;
+            });
+            memObjs.forEach((memObj, m_i) => {
+                members.push(memObj);
             });
         });
-    }
-    // 儲存 finance 設定資料
-    function saveFinance(){
-        console.log("saveFinance.finance=", finance);
+    }    
+    // 新增 financeObj 單筆資料
+    function newRecord(){
+        console.log("newRecord.financeObj=", financeObj);
 
-        let saveFinancePromise = fetchData({
-            api: "save_finance",
+        let newFinanceKFPromise = fetchData({
+            api: "new_finance",
             data: {
-                finance: finance,
-                account: props.account,
+                finance: financeObj,
             }
-        });
-        Promise.all([saveFinancePromise]).then((values) => {
-            console.log("saveFinancePromise.values=", values);
+        }, "KUO-FUNDS");
+        Promise.all([newFinanceKFPromise]).then((values) => {
+            console.log("newFinanceKFPromise.values=", values);
 
             let opObj = {
-                status: true,
                 message: "",
+                status: true,
             };
             opObj.status = values[0]["result"];
             if(values[0]["result"] === true){
@@ -143,106 +76,78 @@
             }else{
                 opObj.message = values[0]["message"];
             }
-            // 將 message 傳給 Setting.vue 
+
+            // 還原設定值
+            financeObj.code_name = "";
+            financeObj.type = "IN";
+            financeObj.money = 500;
+            financeObj.date = moment().format("YYYY-MM-DD");
+            financeObj.memo = "";
 
             if(opObj.status){
-                // 通知 Finance.vue 儲存成功, 並關閉 SettingFinance Modal
                 emit('modalStatus', "SAVE_SUCCESS", opObj.message); // Emitting the event with data
             }else{
-                // 通知 Finance.vue 儲存失敗, 並關閉 SettingFinance Modal
                 emit('modalStatus', "SAVE_FAIL", opObj.message); // Emitting the event with data
             }
         });
-    }   
-    // 關閉 setting modal
+    }
+    // 關閉 modal
     function closeSettingModal(){
-        // 通知 Finance.vue 關閉 SettingFinance Modal
+        // 還原設定值
+        financeObj.code_name = "";
+        financeObj.type = "IN";
+        financeObj.money = 500;
+        financeObj.date = moment().format("YYYY-MM-DD");
+        financeObj.memo = "";
+
         emit('modalStatus', "CLOSE", ""); // Emitting the event with data
     }
 </script>
 
 <template>
 
-    <div class="w-1/1 flex flex-col overflow-y-auto">
-        <div class="divider divider-warning">
-            買房
-        </div>
-        <div class="w-1/1 flex flex-row gap-2">
-            <label class="label flex-none">目標房價:</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.house.target" />
-        </div>
-
-        <div class="divider divider-error">
-            台新信貸
-        </div>
-        <div class="w-1/1 flex flex-row gap-2">
-            <label class="label flex-none">剩餘款項:</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.credit.remain" />
+    <div class="w-1/1 flex flex-col gap-2">
+        <div class="flex flex-row gap-2 w-1/1">
+            <label class="text-green-900 text-lg w-1/2">
+                <input type="radio" v-model="financeObj.type" value="IN" />
+                存款
+            </label>
+            <label class="text-red-900 text-lg w-1/2">
+                <input type="radio" v-model="financeObj.type" value="OUT" />
+                提領
+            </label>
         </div>
 
-        <div class="divider divider-success">
-            存款速度( 以 3 個月為一期 )
-        </div>
-        <div class="w-1/1 flex flex-col md:flex-row">
-            <div class="w-1/1 md:w-1/2 flex flex-row gap-1">
-                <label class="label flex-none">台幣/期:</label>
-                <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.deposit_Speed.value1" />
-            </div>
-            <div class="w-1/1 md:w-1/2 flex flex-row gap-1">
-                <label class="label flex-none">股息/期:</label>
-                <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.deposit_Speed.value2" />
-            </div>
+        <div class="w-1/1 flex flex-col">
+            <label class="label">日期:</label>
+            <input type="date" class="input w-1/1" placeholder="" v-model="financeObj.date" />
         </div>
 
-        <div class="divider divider-success">
-            存款
-        </div>
-        <div class="w-1/1 flex flex-row gap-2">
-            <label class="label flex-none">存款( TWD )</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.deposit_TWD.value" />
-        </div>
-
-        <div class="divider"></div>
-        <div class="w-1/1 flex flex-row gap-1">
-            <label class="label flex-none">保險( USD ):</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.deposit_USD_insurance.value" />
-        </div>
-        <div class="w-1/1 flex flex-row gap-1">
-            <label class="label flex-none">定存( USD ):</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.deposit_USD_fixed.value" />
+        <div class="w-1/1 flex flex-col">
+            <label class="label">人員姓名:</label>
+            <select class="select w-1/1" v-model="financeObj.code_name">
+                <option v-for="(memObj, m_i) in members" :value="memObj.code_name">{{ memObj.name }}</option>
+            </select>
         </div>
 
-        <div class="divider divider-neutral">
-            存股: 0056.TW
+        <div class="w-1/1 flex flex-col">
+            <label class="label">金額:</label>
+            <input type="number" min="0" class="input w-1/1" placeholder="" v-model="financeObj.money" />
         </div>
-        <div class="w-1/1 flex flex-row gap-1">
-            <label class="label flex-none">股數:</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.stock_tw0056.num" />
-        </div>
-
-        <div class="divider divider-neutral">
-            存股: 00878.TW
-        </div>
-        <div class="w-1/1 flex flex-row gap-1">
-            <label class="label flex-none">股數:</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.stock_tw00878.num" />
-        </div>
-
-        <div class="divider divider-neutral">
-            奈米投
-        </div>
-        <div class="w-1/1 flex flex-row gap-1">
-            <label class="label flex-none">USD</label>
-            <input type="number" min="0" class="input flex-1" placeholder="0" v-model="finance.stock_nano.value" />
+        
+        <div class="w-1/1 flex flex-col">
+            <label class="label">備註:</label>
+            <input type="text" class="input w-1/1" placeholder="" v-model="financeObj.memo" />
         </div>
     </div>
+
     <div class="divider divider-primary"></div>
-    <div class="w-1/1 flex flex-row gap-2">
-        <button class="btn bg-gray-900 text-gray-100 hover:bg-blue-200 hover:text-gray-900 w-1/2 " @click="closeSettingModal">
+    <div class="modal-action">
+        <button class="btn bg-gray-900 text-gray-100 hover:bg-yellow-300 hover:text-gray-900 w-1/2" @click="closeSettingModal">
             關閉
         </button>
-        <button class="btn bg-gray-100 text-gray-900 hover:bg-blue-200 w-1/2" @click="saveFinance">
-            儲存
+        <button class="btn bg-gray-200 text-gray-900 hover:bg-yellow-300 w-1/2" @click="newRecord">
+            新增
         </button>
     </div>
 

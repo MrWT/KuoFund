@@ -1,7 +1,8 @@
 <script setup>
     import { ref, reactive, onMounted, watch } from 'vue'
+    import moment from 'moment'
     import { fetchData } from "@/composables/fetchData"
-
+    
     import SettingFinance from '@/components/SettingFinance.vue'
 
     const emit = defineEmits(['popupMessage']);
@@ -9,7 +10,7 @@
         title: String,
         account: String,
         user_role: String,
-    });
+    })
 
     onMounted(() => {
         console.log("Finance mounted.");
@@ -17,488 +18,269 @@
     });
 
     let appState = ref("");
-    let progressSetting = reactive({
-        house: {
-            value: null,
-            max: null,
-            targetText: "",
-            progressText: "",
-        },
-        credit: {
-            value: null,
-            max: null,
-            targetText: "",
-            progressText: "",
-            remainText: "",
-            remainValue: null,
-        },
-        speed: {
-            target: 0,
-            speed: 0,
-            perMonth: 0,
-        },
-    });
-    let deposit_TWD = ref(0);
-    let deposit_USD_insurance = ref(0);
-    let deposit_LikeTWD_insurance = ref(0);
-    let deposit_USD_fixed = ref(0);
-    let deposit_LikeTWD_fixed = ref(0);
-    let stock_USD = ref(0);
-    let stock_LikeTWD = ref(0);
 
-    let usd_currency = ref(0);
+    let funds_total = ref(0);
+    let funds_members = reactive([]);
+    let funds = reactive([]);
+    let funds_months = reactive([]);
+    let sel_dataMN = ref("");
+    let todayMN = ref(moment().format("YYYY-MM"));
 
-    let stockTW = reactive({
-        totalValue: "",
-        totalTWD: "",
-        tw0056: "",
-        tw0056_TWD: "",
-        tw00878: "",
-        tw00878_TWD: "",
-        tw00919: "",
-        tw00919_TWD: "",
-    });
+    let delRecordObj = reactive({});
 
-    let areaBlockStatus = reactive({
-        speed: false,
-        stock_twd: false,
-        credit: false,
-        house: false,
-        deposit_usd: false,
-        insurance_usd: false,
-        fixed_usd: false,
-        stock_usd: false,
+    /* ********************
+     * *** Search Modal ***
+     * ******************** */
+    // 查詢 - 狀態
+    let searchStatus = ref("INIT");
+    // 查詢 - 選項
+    let promptOptions = reactive({
+        time: [],
+        member: [],
     });
+    // 查詢 - 選擇結果
+    let promptTime = ref("All");
+    let promptMember = ref("All");
+    let promptSort = ref("由晚到早");
+    // 給 AI 的 search prompt
+    let prompt = ref("");
+    // 查詢結果
+    let searchResult = ref("");
 
     // 初始化 component
     function init(){
-        console.log("finance.init");
-        console.log("props.title=" + props.title);
-        console.log("props.account=" + props.account);
-        console.log("props.user_role=" + props.user_role);
-
-        if(props.account){
-            // 取得使用者個人 finance 資料
-            fetchFinance();
-        }
-    }
-    // 取得使用者個人 finance 資料
-    function fetchFinance(){
-        // 當下匯率
-        {
-            let fetchPromise_currency = fetchData({
-                api: "get_answer",
-                data: {
-                    question: "美元兌台幣的匯率, 只給我匯率數字就好",
-                }
-            }, "AI");
-            Promise.all([fetchPromise_currency]).then((values) => {
-                console.log("當下匯率=", values);
-
-                let currency = 0;
-                try
-                {
-                    let jsonStr_ans = values[0].replace(/```json/g, "");
-                    let jsonObj_ans = JSON.parse(jsonStr_ans);
-                    currency = parseFloat( jsonObj_ans["answer"] );
-                }
-                catch(ex){
-                    currency = 30.0;
-                }
-                usd_currency.value = currency;
-            });
-        }
-
-        // 台股資訊
-        {
-            areaBlockStatus.stock_twd = false;
-            // 0056
-            let fetchPromise_0056 = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "stock_0056",
-                }
-            });
-            let fetchPromise_price_0056 = fetchData({
-                api: "get_answer",
-                data: {
-                    question: "台股ETF 0056 的股價, 只給我股價數字就好",
-                }
-            }, "AI");
-            // 00878
-            let fetchPromise_00878 = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "stock_00878",
-                }
-            });
-            let fetchPromise_price_00878 = fetchData({
-                api: "get_answer",
-                data: {
-                    question: "台股ETF 00878 的股價, 只給我股價數字就好",
-                }
-            }, "AI");
-            Promise.all([fetchPromise_0056, fetchPromise_price_0056, fetchPromise_00878, fetchPromise_price_00878]).then((values) => {
-                console.log("台股資訊=", values);
-
-                // 0056
-                let finObj_0056 = values[0][0];
-                // 0056 的即時股價
-                {
-                    let price_0056 = 0;
-                    try
-                    {
-                        let jsonStr_ans = values[1].replace(/```json/g, "");
-                        let jsonObj_ans = JSON.parse(jsonStr_ans);
-                        price_0056 = parseFloat( jsonObj_ans["answer"] );
-                    }
-                    catch(ex){
-                        price_0056 = 0;
-                    }
-
-                    finObj_0056["value2"] = price_0056;
-                }
-
-                // 00878
-                let finObj_00878 = values[2][0];
-                // 00878 的即時股價
-                {
-                    let price_00878 = 0;
-                    try
-                    {
-                        let jsonStr_ans = values[3].replace(/```json/g, "");
-                        let jsonObj_ans = JSON.parse(jsonStr_ans);
-                        price_00878 = parseFloat( jsonObj_ans["answer"] );
-                    }
-                    catch(ex){
-                        price_00878 = 0;
-                    }
-                    finObj_00878["value2"] = price_00878;
-                }
-
-                let stockDatas_TWD = [finObj_0056, finObj_00878];
-                buildStockTW(stockDatas_TWD);
-            });
-        }
-
-        // 台幣存款資訊
-        {
-            let fetchPromise_deposit = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "deposit",
-                }
-            });
-            Promise.all([fetchPromise_deposit]).then((values) => {
-                console.log("台幣存款資訊=", values);
-                buildDepositTWD(values[0][0]);
-            });    
-        }
-
-        // 存款速度資訊
-        {
-            areaBlockStatus.speed = false;
-            let fetchPromise_speed = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "speed",
-                }
-            });
-            Promise.all([fetchPromise_speed]).then((values) => {
-                console.log("存款速度資訊=", values);
-                buildSpeedBlock(values[0][0]);
-            });
-        }
-
-        // 信貸資訊
-        {
-            areaBlockStatus.credit = false;
-
-            let fetchPromise_credit = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "credit",
-                }
-            });
-            let fetchPromise_deposit = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "deposit",
-                }
-            });
-            Promise.all([fetchPromise_credit, fetchPromise_deposit]).then((values) => {
-                console.log("信貸資訊=", values);
-                buildCreditBlock(values[0][0], values[1][0]);
-            });
-        }
+        console.log("Finance.init");
+        console.log("Finance.props.title", props.title);
+        console.log("Finance.props.account", props.account);
+        console.log("Finance.props.user_role", props.user_role);
         
-    }
-    // 取得使用者個人 finance 資料 - 美金相關
-    function fetchFinance_usd(){
-        // 奈米投資訊
-        {
-            areaBlockStatus.stock_usd = false;
+        // 取得初始資料
+        fetchInitData();
+    }    
+    // 取得初始資料
+    function fetchInitData(){
+        sel_dataMN.value = "";
 
-            let fetchPromise_nano = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "stock_nano",
+        //console.log("fetchInitData");
+        // 清空結餘
+        funds_total.value = 0;
+        // 取得資料月份
+        let fetchFundsMonthPromise = fetchData({
+            api: "get_finance_month",
+        }, "KUO-FUNDS");
+        // 取得總結餘
+        let fetchFundsTotalPromise = fetchData({
+            api: "get_finance_total",
+        }, "KUO-FUNDS");
+        // 取得成員
+        let fetchMembersPromise = fetchData({
+            api: "get_members",
+        }, "KUO-FUNDS");
+        Promise.all([fetchFundsTotalPromise, fetchFundsMonthPromise, fetchMembersPromise]).then((values) => {
+            console.log("fetchFundsPromise.values=", values);
+            // 帳務結餘
+            funds_total.value = values[0];
+
+            // 帳務月份
+            {
+                // clear month list
+                funds_months.splice(0, funds_months.length);
+                values[1].forEach((fmn, fmn_i) => {
+                    funds_months.push(fmn);
+                });
+
+                if(!funds_months.includes(moment().format("YYYY-MM"))){
+                    funds_months.push(moment().format("YYYY-MM"));
                 }
-            });
-            Promise.all([fetchPromise_nano]).then((values) => {
-                console.log("奈米投資訊=", values);
-                
-                let finObj = values[0][0];
-                // 當下匯率
-                finObj["value2"] = usd_currency.value;
-                buildStockGlobal(finObj);
-            });
-        }
 
-        // 美金存款資訊 - 保險
-        {
-            areaBlockStatus.insurance_usd = false;
-            let fetchPromise_insurance = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "deposit_insurance",
+                funds_months.sort((x, y) => {
+                    if( x < y ){
+                        return 1;
+                    }
+                    if( x > y ){
+                        return -1;
+                    }
+                    return 0;
+                });
+
+                // 查詢帳務 - 帳務月份
+                {
+                    // clear month list
+                    promptOptions.time.splice(0, promptOptions.time.length);
+                    promptOptions.time.push({ value: "All", text: "All", });
+                    funds_months.forEach((fmn, fmn_i) => {
+                        let f_fmn = fmn.split("-")[0] + " 年 " + fmn.split("-")[1] +  " 月 ";
+                        promptOptions.time.push(
+                            { value: f_fmn, text: f_fmn, }
+                        );
+                    });
                 }
-            });
-            Promise.all([fetchPromise_insurance]).then((values) => {
-                console.log("美金存款資訊 - 保險=", values);
-
-                let finObj = values[0][0];
-                // 當下匯率
-                finObj["value2"] = usd_currency.value;
-                buildDepositUSD_insurance(finObj);
-            });
-        }
-
-        // 美金存款資訊 - 定存
-        {
-            areaBlockStatus.fixed_usd = false;
-            let fetchPromise_fixed = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "deposit_fixed",
-                }
-            });
-            Promise.all([fetchPromise_fixed]).then((values) => {
-                console.log("美金存款資訊 - 定存=", values);
-
-                let finObj = values[0][0];
-                // 當下匯率
-                finObj["value2"] = usd_currency.value;
-                buildDepositUSD_fixed(finObj);
-            });
-        }
-
-        // 購屋資訊
-        {
-            areaBlockStatus.house = false;
-
-            // 購屋目標
-            let fetchPromise_house = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "house",
-                }
-            });
-            // 保險 - 美金計價
-            let fetchPromise_insurance = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "deposit_insurance",
-                }
-            });
-            // 定存 - 美金計價
-            let fetchPromise_fixed = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "deposit_fixed",
-                }
-            });
-            // 奈米投 - 美金計價
-            let fetchPromise_nano = fetchData({
-                api: "get_finance",
-                data: {
-                    account: props.account,
-                    f_name: "stock_nano",
-                }
-            });
-            Promise.all([fetchPromise_house, fetchPromise_insurance, fetchPromise_fixed, fetchPromise_nano]).then((values) => {
-                console.log("購屋資訊=", values);
-
-                let finObj_insurance = values[1][0];
-                let finObj_fixed = values[2][0];
-                let finObj_nano = values[3][0];
-
-                finObj_insurance["value2"] = usd_currency.value;
-                finObj_fixed["value2"] = usd_currency.value;
-                finObj_nano["value2"] = usd_currency.value;
-
-                buildHouseBlock(values[0][0], finObj_insurance, finObj_fixed, finObj_nano);
-            });
-        }
-    }
-    // 建立"購屋進度"區塊
-    function buildHouseBlock(houseObj, depositObj_USD_insurance, depositObj_USD_fixed, stockData_USD){
-        let targetValue = houseObj["value1"];
-        let currentValue = depositObj_USD_insurance["value1"] * depositObj_USD_insurance["value2"] 
-                        + depositObj_USD_fixed["value1"] * depositObj_USD_fixed["value2"] 
-                        + stockData_USD["value1"] * stockData_USD["value2"];
-        currentValue = Math.floor( currentValue );
-
-        progressSetting.house.max = 100;
-        progressSetting.house.value = Math.floor( currentValue * 100 / (targetValue * 0.3) );
-
-        progressSetting.house.targetText = "購屋目標: " + (new Intl.NumberFormat().format(targetValue));
-        progressSetting.house.progressText = "";
-        progressSetting.house.progressText += "進度: ";
-        progressSetting.house.progressText += (new Intl.NumberFormat().format(currentValue)) + " / ";
-        progressSetting.house.progressText += (new Intl.NumberFormat().format(targetValue * 0.3)) + "( 粗估三成 )";
-        progressSetting.house.progressText += " = " + progressSetting.house.value + "%";
-
-        areaBlockStatus.house = true;
-    }
-    // 建立"還款進度"區塊
-    function buildCreditBlock(creditObj, depositObj_TWD){
-        let targetValue = creditObj["value1"];
-        let currentValue = creditObj["value2"];
-        let depositValue = depositObj_TWD["value1"];
-
-        progressSetting.credit.max = 100;
-        progressSetting.credit.value = Math.floor( (targetValue - currentValue) * 100 / targetValue );
-
-        progressSetting.credit.targetText = "還款目標: " + (new Intl.NumberFormat().format(targetValue));
-        progressSetting.credit.progressText = "";
-        progressSetting.credit.progressText += "進度: ";
-        progressSetting.credit.progressText += (new Intl.NumberFormat().format(targetValue - currentValue)) + " / ";
-        progressSetting.credit.progressText += (new Intl.NumberFormat().format(targetValue));
-        progressSetting.credit.progressText += "=" + progressSetting.credit.value + "%";
-
-        progressSetting.credit.remainValue = Math.floor((targetValue - (currentValue - depositValue))*100 / targetValue);
-        progressSetting.credit.remainText = "";
-        progressSetting.credit.remainText += "剩餘: " + (new Intl.NumberFormat().format(currentValue))
-                                                + "-" + (new Intl.NumberFormat().format(depositValue))
-                                                + "=" + (new Intl.NumberFormat().format(currentValue - depositValue)) + "";
-        progressSetting.credit.remainText += "( " + progressSetting.credit.remainValue + "% )";
-
-        areaBlockStatus.credit = true;
-    }
-    // 建立"存款速度"區塊
-    function buildSpeedBlock(depositData){
-        //console.log("buildSpeedBlock.depositData=", depositData);
-
-        let targetValue = 100 * 10000; // 目標: 存到 100 萬台幣的速度
-        let twdValuePer3Month = parseInt( depositData["value1"] ); // 每期可以存到的台幣( 每期是 3 個月 )
-        let stockValuePer3Month = parseInt( depositData["value2"] ); // 每期可以存到的股息( 每期是 3 個月 )
-        let valuePerMonth = Math.floor( ( twdValuePer3Month + stockValuePer3Month ) / 3 ); // 每個月共可存到的台幣
-        let valuePer3Month = ( twdValuePer3Month + stockValuePer3Month ); // 每期共可存到的台幣
-
-        let speed = Math.ceil( targetValue / valuePer3Month );
-
-        console.log("buildSpeedBlock.targetValue=" + targetValue);
-        console.log("buildSpeedBlock.valuePer3Month=" + valuePer3Month);
-        console.log("buildSpeedBlock.valuePerMonth=" + valuePerMonth);
-        console.log("buildSpeedBlock.speed=" + speed);
-
-        progressSetting["speed"]["target"] = Math.floor( targetValue / 10000 );
-        progressSetting["speed"]["speed"] = speed;
-        progressSetting["speed"]["perMonth"] = (new Intl.NumberFormat().format(valuePerMonth)); 
-        progressSetting["speed"]["per3Month"] = (new Intl.NumberFormat().format(valuePer3Month)); 
-        progressSetting["speed"]["twdValuePer3Month"] = (new Intl.NumberFormat().format(twdValuePer3Month));
-        progressSetting["speed"]["stockValuePer3Month"] = (new Intl.NumberFormat().format(stockValuePer3Month));
-
-        areaBlockStatus.speed = true;
-    }
-    // 建立"台灣股票"區塊
-    function buildStockTW(stockDatas){
-        console.log("buildStockTW.stockDatas=", stockDatas);
-
-        let stockTotalValue = 0;
-        let stockTotalTWD = 0;
-        let stockLabels = [];
-        let stockSeries = [];
-        stockDatas.forEach((dataObj, d_i) => {
-            let name = dataObj["name"];
-            let stockLabel = name.split("_")[1];
-
-            stockLabels.push( stockLabel );
-            stockSeries.push( dataObj["value1"] );
-
-            stockTotalValue += dataObj["value1"];
-            stockTotalTWD += (dataObj["value1"] * dataObj["value2"]);
-            switch(dataObj["name"]){
-                case "stock_0056":
-                    stockTW.tw0056 = new Intl.NumberFormat().format( dataObj["value1"] );
-                    stockTW.tw0056_TWD = new Intl.NumberFormat().format( dataObj["value1"] * dataObj["value2"] );
-                    break;
-                case "stock_00878":
-                    stockTW.tw00878 = new Intl.NumberFormat().format( dataObj["value1"] );
-                    stockTW.tw00878_TWD = new Intl.NumberFormat().format( dataObj["value1"] * dataObj["value2"] );
-                    break;
-                case "stock_00919":
-                    stockTW.tw00919 = new Intl.NumberFormat().format( dataObj["value1"] );
-                    stockTW.tw00919_TWD = new Intl.NumberFormat().format( dataObj["value1"] * dataObj["value2"] );
-                    break;
             }
+
+            // 成員
+            {
+                values[2].sort((x, y) => {
+                    if(x["code_name"] < y["code_name"]) return -1;
+                    if(x["code_name"] > y["code_name"]) return 1;
+                    return 0;
+                });
+
+                // clear member list
+                funds_members.splice(0, funds_members.length);
+                values[2].forEach((memObj, mem_i) => {
+                    funds_members.push(memObj);
+                });
+
+                 // 查詢帳務 - 成員們
+                {
+                    // clear member list
+                    promptOptions.member.splice(0, promptOptions.member.length);
+                    promptOptions.member.push({ value: "All", text: "All", });
+                    values[2].forEach((memObj, mem_i) => {
+                        promptOptions.member.push(
+                            { value: memObj["name"], text: memObj["name"], }
+                        );
+                    });
+                }
+            }
+           
+        }).then(() => {
+            sel_dataMN.value = moment().format("YYYY-MM");
         });
-        stockTW.totalValue = new Intl.NumberFormat().format(stockTotalValue);
-        stockTW.totalTWD = new Intl.NumberFormat().format(stockTotalTWD);
-
-        areaBlockStatus.stock_twd = true;
     }
-    // 建立"全球股票"區塊
-    function buildStockGlobal(stockData){
-        //console.log("buildStockGlobal.stockData=", stockData);
-        stock_USD.value = new Intl.NumberFormat('en-US').format(stockData["value1"]);
+    // 選擇查閱的資料月份
+    function clickDataMN(dataYM){
+        sel_dataMN.value = dataYM;
+    }
+    // 取得特定月份儲值/提領紀錄
+    function fetchFunds(dataYM){
+        console.log("fetchFunds.dataYM=", dataYM);
 
-        let likeTWD = Math.floor( stockData["value1"] * stockData["value2"] );
-        stock_LikeTWD.value = new Intl.NumberFormat('en-US').format(likeTWD);
+        let fetchFundsPromise = fetchData({
+            api: "get_finance",
+            data: {
+                dataYM: dataYM,
+            },
+        }, "KUO-FUNDS");
+        Promise.all([fetchFundsPromise]).then((values) => {
+            console.log("fetchFundsPromise.values=", values);
 
-        areaBlockStatus.stock_usd = true;
+            funds.splice(0, funds.length);
+            values[0].forEach((fundObj, f_i) => {
+                // 找到紀錄姓名
+                for(let mem_i = 0; mem_i < funds_members.length; mem_i++){
+                    let memObj = funds_members[mem_i];
+                    if(memObj["code_name"] === fundObj["code_name"]){
+                        fundObj["name"] = memObj["name"];
+                        break;
+                    }
+                }
+                funds.push(fundObj);
+            });
+            // 排序
+            funds.sort((x, y) => {
+                // 依 code_name 排序
+                if(x["code_name"] > y["code_name"]) return 1;
+                if(x["code_name"] < y["code_name"]) return -1;
+                if(x["code_name"] === y["code_name"]){
+                    // 依日期排序
+                    if( x["date"] < y["date"] ) return 1;
+                    if( x["date"] > y["date"] ) return -1;
+                    if( x["date"] === y["date"] ) return 0;
+                }
+            });
+        });
 
     }
-    // 建立"台幣存款"區塊
-    function buildDepositTWD(depositData){
-        console.log("buildDepositTWD.depositData=", depositData);
+    // 跳出失效再確認 modal
+    function popupDelConfirmModal(delObj){
+        delRecordObj["code_name"] = delObj["code_name"];
+        delRecordObj["name"] = delObj["name"];
+        delRecordObj["type"] = delObj["type"];
+        delRecordObj["date"] = delObj["date"];
+        console.log("popupDelConfirmModal.delRecordObj=", delRecordObj);
 
-        deposit_TWD.value = new Intl.NumberFormat('en-US').format(depositData["value1"]);
+        document.getElementById("delConfirmModal").showModal();
     }
-    // 建立"美金存款"區塊-保險
-    function buildDepositUSD_insurance(depositData){
-        //console.log("buildDepositUSD_insurance.depositData=", depositData);
-        deposit_USD_insurance.value = new Intl.NumberFormat('en-US').format(depositData["value1"]);
-
-        let likeTWD = Math.floor( depositData["value1"] * depositData["value2"] );
-        deposit_LikeTWD_insurance.value = new Intl.NumberFormat('en-US').format(likeTWD);
-
-        areaBlockStatus.insurance_usd = true;
+    // 取消失效再確認 modal
+    function cancelPopupDelConfirmModal(){
+        document.getElementById("delConfirmModal").close();
     }
-    // 建立"美金存款"區塊-定存
-    function buildDepositUSD_fixed(depositData){
-        //console.log("buildDepositUSD_fixed.depositData=", depositData);
-        deposit_USD_fixed.value = new Intl.NumberFormat('en-US').format(depositData["value1"]);
+    // 失效儲值/提領紀錄
+    function deleteRecord(){
+        console.log("deleteRecord.delRecordObj=", delRecordObj);
 
-        let likeTWD = Math.floor( depositData["value1"] * depositData["value2"] );
-        deposit_LikeTWD_fixed.value = new Intl.NumberFormat('en-US').format(likeTWD);
+        let delFinanceKFPromise = fetchData({
+            api: "del_finance",
+            data: {
+                finance: delRecordObj,
+            }
+        }, "KUO-FUNDS");
+        Promise.all([delFinanceKFPromise]).then((values) => {
+            console.log("delFinanceKFPromise.values=", values);
 
-        areaBlockStatus.fixed_usd = true;
+            let opObj = {
+                message: "",
+                status: true,
+            };
+            opObj.status = values[0]["result"];
+            if(values[0]["result"] === true){
+                opObj.message = "失效成功";
+                // 更新資料
+                fetchInitData();
+            }else{
+                opObj.message = values[0]["message"];
+            }
+
+            document.getElementById("delConfirmModal").close();
+            // 將 message 傳給 Setting.vue 
+            emit('popupMessage', opObj.status, opObj.message); // Emitting the event with data
+        });
     }
+    // 開啟 search modal
+    function openSearchModal(){
+        searchStatus.value = "INIT";
+        searchResult.value = "";
+        promptTime.value = "All";
+        promptMember.value = "All";
+        promptSort.value = "由晚到早";
+        document.getElementById("searchModal").showModal();
+    }
+    // 查詢帳務
+    function doSearch(){
+        searchStatus.value = "SEARCHING";
+        searchResult.value = "";
 
+        let selTime = promptTime.value === "All" ? "全部時間" : promptTime.value;
+        let selMember = promptMember.value === "All" ? "全部成員" : promptMember.value;
+        prompt.value = "幫我列出 " + selTime + " " + selMember + " 的帳務紀錄(依時間排序:" + promptSort.value + ")";
+
+        let chatPromise = fetchData({
+            api: "check_accounts",
+            data: {
+                account: props.account,
+                chat_room_uuid: "INIT",
+                message: prompt.value,
+                time: moment().format("YYYY-MM-DD HH:mm:ss"),
+            }
+        }, "KUO-FUNDS");
+        Promise.all([chatPromise]).then((values) => {
+            console.log("chatPromise.values=", values);
+
+            let ai_msg = values[0].message;
+            if(ai_msg.indexOf("ERROR:") === 0){
+                if(ai_msg.indexOf("ERROR:429 RESOURCE_EXHAUSTED") === 0){
+                    emit('popupMessage', false, "AI 忙碌中... 請稍等再查詢..."); // Emitting the event with data
+                    ai_msg = "AI 忙碌中... 請稍等再查詢...";
+                }else{
+                    emit('popupMessage', false, ai_msg); // Emitting the event with data
+                }
+            }
+            searchResult.value = ai_msg;
+
+            searchStatus.value = "DONE";
+        });
+    }
     // 開啟 setting modal
     function openSettingModal(){
         document.getElementById("settingModal").showModal();
@@ -512,7 +294,7 @@
         if(opMode === "SAVE_SUCCESS"){
             emit('popupMessage', true, message); // Emitting the event with data
             // 更新資料
-            fetchFinance();
+            fetchInitData();
         }else if(opMode === "SAVE_FAIL"){
             emit('popupMessage', false, message); // Emitting the event with data
         }
@@ -520,179 +302,179 @@
         closeSettingModal();
     }
 
-    // 監聽
-    watch(usd_currency, (newValue, oldValue) => {
-        fetchFinance_usd();
-    });
+    // 監聽 sel_dataMN
+    watch(sel_dataMN, (newDataMN, oldDataMN) => {
+        console.log("watch.sel_dataMN.newDataMN=", newDataMN);
 
+        if(newDataMN){
+            fetchFunds(newDataMN);
+        }
+    });
 </script>
 
 <template>
 
-<div class="flex flex-col w-1/1 h-1/1 gap-2 overflow-y-auto">
-    <div v-if="props.user_role === 'admin'" class="flex flex-row justify-end w-1/1 bg-transparent rounded-xl gap-2">
-        <a class="text-gray-500 hover:text-gray-900 cursor-pointer fixed top-20 right-8 z-[50]" @click="openSettingModal">
-            <svg class="size-10" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13v-2a1 1 0 0 0-1-1h-.757l-.707-1.707.535-.536a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-.536.535L14 4.757V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v.757l-1.707.707-.536-.535a1 1 0 0 0-1.414 0L4.929 6.343a1 1 0 0 0 0 1.414l.536.536L4.757 10H4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h.757l.707 1.707-.535.536a1 1 0 0 0 0 1.414l1.414 1.414a1 1 0 0 0 1.414 0l.536-.535 1.707.707V20a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-.757l1.707-.708.536.536a1 1 0 0 0 1.414 0l1.414-1.414a1 1 0 0 0 0-1.414l-.535-.536.707-1.707H20a1 1 0 0 0 1-1Z"/>
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-            </svg>
-        </a>
-    </div>
-
-    <div class="flex flex-col w-1/1 gap-2">
-        <div class="flex flex-row w-1/1 h-1/1">
-            <div v-if="areaBlockStatus.speed" class="card rounded-box grid h-1/1 w-1/1 p-5 place-items-center"
-                 :class="{'bg-red-300': 12 <= progressSetting.speed.speed,
-                          'bg-orange-300': 7 <= progressSetting.speed.speed && progressSetting.speed.speed < 12,
-                          'bg-blue-300': 3 < progressSetting.speed.speed && progressSetting.speed.speed < 7,
-                          'bg-green-300': progressSetting.speed.speed <= 3}">
-                <div class="w-1/1 text-xl text-center">
-                    約需 {{ progressSetting["speed"]["speed"] }} 期<br />
-                    可以存到 {{ progressSetting["speed"]["target"] }} 萬
-                </div>
+<div class="w-1/1 h-11/12">
+    <div class="flex-none w-1/1 flex flex-col">
+        <div class="w-1/1 flex flex-row">
+            <div class="w-3/4 text-3xl text-center p-2 rounded-xl" 
+                 :class="{'bg-gray-200': funds_total === 0, 'bg-green-200': funds_total > 0, 'bg-red-200': funds_total < 0}">
+                結餘：$ {{ new Intl.NumberFormat().format( funds_total ) }}
             </div>
-            <div v-if="!areaBlockStatus.speed" class="skeleton h-32 w-1/1"></div>
+            <div class="w-1/4 flex flex-row justify-end items-center gap-2">
+                <a class="cursor-pointer text-gray-400 hover:text-gray-900" @click="openSearchModal">
+                    <svg class="size-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
+                    </svg>
+                </a>
+                <a v-if="props.user_role === 'admin_kf'" class="cursor-pointer text-gray-400 hover:text-gray-900" @click="openSettingModal">
+                    <svg class="size-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13v-2a1 1 0 0 0-1-1h-.757l-.707-1.707.535-.536a1 1 0 0 0 0-1.414l-1.414-1.414a1 1 0 0 0-1.414 0l-.536.535L14 4.757V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v.757l-1.707.707-.536-.535a1 1 0 0 0-1.414 0L4.929 6.343a1 1 0 0 0 0 1.414l.536.536L4.757 10H4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h.757l.707 1.707-.535.536a1 1 0 0 0 0 1.414l1.414 1.414a1 1 0 0 0 1.414 0l.536-.535 1.707.707V20a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-.757l1.707-.708.536.536a1 1 0 0 0 1.414 0l1.414-1.414a1 1 0 0 0 0-1.414l-.535-.536.707-1.707H20a1 1 0 0 0 1-1Z"/>
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+                    </svg>
+                </a>
+            </div>
         </div>
-        <div class="flex flex-col md:flex-row w-10/10 h-10/10 gap-2">        
-            <div v-if="areaBlockStatus.speed" class="card rounded-box grid h-1/1 w-1/1 md:w-1/2 p-5 place-items-center"
-                 :class="{'bg-red-300': 12 <= progressSetting.speed.speed,
-                          'bg-orange-300': 7 <= progressSetting.speed.speed && progressSetting.speed.speed < 12,
-                          'bg-blue-300': 3 < progressSetting.speed.speed && progressSetting.speed.speed < 7,
-                          'bg-green-300': progressSetting.speed.speed <= 3}">
-                <div class="w-10/10 text-xl text-center">
-                    每期(薪資+股利)約可存<br />
-                    TWD ${{ progressSetting["speed"]["per3Month"] }}
-                </div>
-                <div v-if="!areaBlockStatus.speed" class="skeleton h-32 w-1/1"></div>
-            </div>
-            <div class="h-1/1 flex content-center hidden md:block">
-                <div>=</div>
-            </div>
-            <div class="flex flex-row w-1/1 md:w-1/2 gap-2">
-                <div class="card rounded-box grid h-1/1 w-1/2 p-5 place-items-center bg-base-300 ">
-                    <div v-if="areaBlockStatus.speed" class="w-10/10 text-md text-center">
-                        每期(薪資)約可存<br />
-                        TWD ${{ progressSetting["speed"]["twdValuePer3Month"] }}
+        <div class="w-1/1 flex flex-row overflow-x-auto overflow-y-hidden shadow-2xl">
+            <button v-for="(f_mn, f_mn_i) in funds_months" @click="clickDataMN(f_mn)"
+                        class="btn btn-ghost rounded-none border-0 border-b-2 hover:border-rose-500 mx-1"
+                        :class="{'border-amber-600': f_mn === sel_dataMN, 'border-gray-500': f_mn !== sel_dataMN}">
+                {{ f_mn }}
+            </button>
+        </div>
+    </div>
+    <div class="flex-1 w-1/1 h-11/12 flex flex-col overflow-y-auto">
+        <div v-for="(fundObj, fund_i) in funds" class="chat"
+            :class="{ 'chat-start': fundObj.type === 'IN', 'chat-end': fundObj.type === 'OUT' }">
+            <div class="chat-image avatar">
+                <div class="avatar avatar-placeholder">
+                    <div class="w-12 rounded-full"
+                        :class="{'bg-green-900': fundObj.type === 'IN', 'bg-red-900': fundObj.type === 'OUT'}">
+                        <span v-if="fundObj.type === 'IN'" class="text-lg text-white">儲值</span>
+                        <span v-if="fundObj.type === 'OUT'" class="text-lg text-white">提領</span>
                     </div>
-                    <div v-if="!areaBlockStatus.speed" class="skeleton h-32 w-1/1"></div>
-                </div>
-                <div class="h-1/1 flex items-center">
-                    <div>+</div>
-                </div>
-                <div class="card rounded-box grid h-1/1 w-1/2 p-5 place-items-center bg-base-300 ">
-                    <div v-if="areaBlockStatus.speed" class="w-10/10 text-md text-center">
-                        每期(股利)約可存<br />
-                        TWD ${{ progressSetting["speed"]["stockValuePer3Month"] }}
-                    </div>
-                    <div v-if="!areaBlockStatus.speed" class="skeleton h-32 w-1/1"></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="divider">股票</div>
-    <div class="flex flex-col md:flex-row w-1/1 h-1/1 gap-2">
-        <div class="bg-base-300 rounded-box flex flex-col p-5 h-10/10 w-1/1 md:w-1/2 items-center">
-            <span v-if="areaBlockStatus.stock_twd" class="h-1/1 inline-block align-middle">
-                <span class="text-2xl">總價值(TWD): {{ stockTW.totalTWD }}</span>
-            </span>
-            <div v-if="!areaBlockStatus.stock_twd" class="skeleton h-32 w-1/1"></div>
-        </div>
-        <div class="h-1/1 flex content-center hidden md:block">
-            <div>=</div>
-        </div>
-        <div class="flex flex-row gap-1 w-1/1 md:w-1/2">
-            <div v-if="areaBlockStatus.stock_twd" class="card bg-gray-300 rounded-box grid p-5 h-10/10 w-1/2 place-items-start">
-                <span class="text-2xl">0056 </span> 
-                <span class="text-lg">股數: {{ stockTW.tw0056 }}</span>
-                <span class="text-lg">TWD: {{ stockTW.tw0056_TWD }}</span>
+            <div class="chat-header">
+                <span class="text-base">{{ fundObj.name }}</span>
+                <time class="text-base opacity-50">{{ fundObj.date }}</time>
             </div>
-            <div v-if="!areaBlockStatus.stock_twd" class="skeleton h-32 w-1/2"></div>
-            <div class="h-1/1 flex items-center">
-                <div>+</div>
+            <div class="chat-bubble">
+                <span v-if="props.user_role === 'admin_kf' && todayMN <= sel_dataMN" class="mr-2 font-black text-red-900 cursor-pointer" @click="popupDelConfirmModal(fundObj)">X</span>
+                $ {{ new Intl.NumberFormat().format( fundObj.money ) }}
+                <span v-if="fundObj.memo !== ''">( {{ fundObj.memo }} )</span>
             </div>
-            <div v-if="areaBlockStatus.stock_twd" class="card bg-gray-300 rounded-box grid p-5 h-10/10 w-1/2 place-items-start">
-                <span class="text-2xl">00878 </span>
-                <span class="text-lg">股數: {{ stockTW.tw00878 }}</span>
-                <span class="text-lg">TWD: {{ stockTW.tw00878_TWD }}</span>
-            </div>
-            <div v-if="!areaBlockStatus.stock_twd" class="skeleton h-32 w-1/2"></div>
+        </div>
+        <div v-if="funds.length === 0" class="text-3xl text-center w-1/1">
+            請稍等, 查詢資料中<span class="loading loading-dots loading-xs"></span>
         </div>
     </div>
-
-    <div class="divider">TWD 計價</div>
-    <div class="card bg-base-300 rounded-box grid h-3/10 w-10/10 p-5 place-items-center">
-        <div class="w-1/1 text-2xl text-center">存款: {{ deposit_TWD }}</div>
-    </div>
-
-    <div v-if="areaBlockStatus.credit" class="card bg-base-300 rounded-box grid h-10/10 w-10/10 p-5 place-items-center mt-1">
-        <div class="flex flex-col w-10/10">
-            <span class="text-2xl">{{ progressSetting.credit.targetText }}</span>
-            <span class="text-lg">{{ progressSetting.credit.progressText }}</span>
-        </div>
-        <progress class="w-10/10 progress"
-                :class="{ 'progress-error': progressSetting.credit.value && progressSetting.credit.value < 50,
-                            'progress-warning': progressSetting.credit.value && 50 <= progressSetting.credit.value && progressSetting.credit.value < 80,
-                            'progress-info': progressSetting.credit.value && 80 <= progressSetting.credit.value && progressSetting.credit.value < 90,
-                            'progress-success': progressSetting.credit.value && 90 <= progressSetting.credit.value }"
-                :value="progressSetting.credit.value" :max="progressSetting.credit.max">
-        </progress>
-        <div class="flex flex-col w-10/10">
-            <span>{{ progressSetting.credit.remainText }}</span>
-        </div>
-        <progress class="w-10/10 progress"
-                :class="{ 'progress-error': progressSetting.credit.remainValue && progressSetting.credit.remainValue < 50,
-                            'progress-warning': progressSetting.credit.remainValue && 50 <= progressSetting.credit.remainValue && progressSetting.credit.remainValue < 80,
-                            'progress-info': progressSetting.credit.remainValue && 80 <= progressSetting.credit.remainValue && progressSetting.credit.remainValue < 90,
-                            'progress-success': progressSetting.credit.remainValue && 90 <= progressSetting.credit.remainValue }"
-                :value="progressSetting.credit.remainValue" :max="progressSetting.credit.max">
-        </progress>
-    </div>
-    <div v-if="!areaBlockStatus.credit" class="skeleton h-32 w-1/1"></div>
-
-    <div v-if="areaBlockStatus.house" class="card bg-base-300 rounded-box grid h-10/10 w-10/10 p-5 place-items-center mt-1">
-        <div class="flex flex-col w-10/10">
-            <span class="text-2xl">{{ progressSetting.house.targetText }}</span>
-            <span class="text-lg">{{ progressSetting.house.progressText }}</span>
-        </div>
-        <progress class="w-10/10 progress"
-                :class="{ 'progress-error': progressSetting.house.value && progressSetting.house.value < 50,
-                            'progress-warning': progressSetting.house.value && 50 <= progressSetting.house.value && progressSetting.house.value < 80,
-                            'progress-info': progressSetting.house.value && 80 <= progressSetting.house.value && progressSetting.house.value < 90,
-                            'progress-success': progressSetting.house.value && 90 <= progressSetting.house.value }"
-                :value="progressSetting.house.value" :max="progressSetting.house.max">
-        </progress>
-    </div>
-    <div v-if="!areaBlockStatus.house" class="skeleton h-32 w-1/1"></div>
-
-    <div class="divider">USD 計價</div>
-    
-    <div class="flex flex-col md:flex-row w-10/10 h-10/10 gap-2">
-        <div v-if="areaBlockStatus.insurance_usd === true" class="card bg-base-300 rounded-box grid h-10/10 w-10/10 md:w-5/10 p-5 place-items-center">
-            <div class="w-10/10 text-2xl">保險 USD: {{ deposit_USD_insurance }}</div>
-            <div class="w-10/10 text-lg">匯率:{{ usd_currency }} / 約 TWD: {{ deposit_LikeTWD_insurance }}</div>
-        </div>
-        <div v-if="areaBlockStatus.insurance_usd === false" class="skeleton h-32 w-1/1"></div>
-
-        <div v-if="areaBlockStatus.fixed_usd === true" class="card bg-base-300 rounded-box grid h-10/10 w-10/10 md:w-5/10 p-5 place-items-center">
-            <div class="w-10/10 text-2xl">定存 USD: {{ deposit_USD_fixed }}</div>
-            <div class="w-10/10 text-lg">匯率:{{ usd_currency }} / 約 TWD: {{ deposit_LikeTWD_fixed }}</div>
-        </div>
-        <div v-if="areaBlockStatus.fixed_usd === false" class="skeleton h-32 w-1/1"></div>
-
-        <div v-if="areaBlockStatus.stock_usd === true" class="card bg-base-300 rounded-box grid h-10/10 w-10/10 md:w-5/10 p-5 place-items-center">
-            <div class="w-10/10 text-2xl">奈米投 USD: {{ stock_USD }}</div>
-            <div class="w-10/10 text-lg">匯率:{{ usd_currency }} / 約 TWD: {{ stock_LikeTWD }}</div>
-        </div>
-        <div v-if="areaBlockStatus.stock_usd === false" class="skeleton h-32 w-1/1"></div>
-    </div>
-
-    <div class="divider"></div>
 </div>
+
+<!-- 失效再確認 -->
+<dialog id="delConfirmModal" class="modal">
+    <div class="modal-box bg-gray-800/80 rounded-box p-2 w-80 md:w-120">
+        <li class="text-white text-xl">{{ "確定要失效以下資料嗎?" }}</li>
+        <div class="divider divider-primary"></div>
+        <li class="text-white text-lg">姓名: {{ delRecordObj.name }}</li>
+        <li class="text-white text-lg">儲值或提領: {{ delRecordObj.type === "IN" ? "儲值" : "提領" }}</li>
+        <li class="text-white text-lg">日期: {{ delRecordObj.date }}</li>
+        <div class="divider divider-primary"></div>
+        <li class="flex flex-row gap-2 w-10/10">
+            <button class="btn w-5/10" @click="cancelPopupDelConfirmModal">
+                取消
+            </button>
+            <button class="btn w-5/10" @click="deleteRecord">
+                確認
+            </button>
+        </li>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- 帳務查詢 -->
+<dialog id="searchModal" class="modal">
+    <div class="modal-box bg-gray-200 rounded-box p-2 w-1/1 max-h-1/1">
+        <form v-if="searchStatus !== 'SEARCHING'" method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <div class="w-1/1 flex flex-col justify-center">
+            <span class="text-xl text-gray-900 text-center">帳務查詢</span>
+            <div class="divider divider-primary"></div>
+        </div>
+        <div class="w-1/1 flex flex-col overflow-y-auto">
+            <div class="w-1/1 grid grid-cols-6">
+                <div>&nbsp;</div>
+                <div class="col-span-4 col-start-2 flex flex-row">
+                    <div class="flex-1">
+                        <div class="w-1/1 flex flex-row p-2">
+                            <div class="flex-none pr-2">
+                                時間:
+                            </div>
+                            <div class="flex-1">
+                                <select v-model="promptTime" class="w-1/1 border" :disabled="searchStatus === 'SEARCHING'">
+                                    <option v-for="(tObj, t_i) in promptOptions.time" :value="tObj.value">{{ tObj.text }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="w-1/1 flex flex-row p-2">
+                            <div class="flex-none pr-2">
+                                成員:
+                            </div>
+                            <div class="flex-1">
+                                <select v-model="promptMember" class="w-1/1 border" :disabled="searchStatus === 'SEARCHING'">
+                                    <option v-for="(mObj, m_i) in promptOptions.member" :value="mObj.value">{{ mObj.text }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="w-1/1 flex flex-row p-2">
+                            <div class="flex-none pr-2">
+                                排序:
+                            </div>
+                            <div class="flex-1">
+                                <label>
+                                    <input type="radio" v-model="promptSort" value="由晚到早" />
+                                    由晚到早
+                                </label>
+                                <label>
+                                    <input type="radio" v-model="promptSort" value="由早到晚" />
+                                    由早到晚
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex-none">
+                        <button class="btn w-20 rounded-lg h-1/1 bg-gray-800 text-gray-100 hover:bg-yellow-100 hover:text-gray-800" :disabled="searchStatus === 'SEARCHING'" @click.stop="doSearch">
+                            <span v-if="searchStatus !== 'SEARCHING'" >查詢</span>  
+                            <span v-if="searchStatus === 'SEARCHING'" class="loading loading-spinner loading-xs"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="divider divider-primary"></div>
+            <div class="w-1/1 h-80 p-5">
+                <label class="h-1/1">
+                    查詢結果:
+                    <textarea class="textarea w-1/1 h-4/5" readonly>{{ searchResult }}</textarea>
+                </label>
+            </div>
+        </div>
+    </div>
+</dialog>
 
 <!-- setting modal -->
 <dialog id="settingModal" class="modal">
-    <div class="modal-box h-9/10 w-1/1 flex flex-col bg-neutral-100">
+    <div class="modal-box h-5/6 w-1/1 flex flex-col bg-neutral-100">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <div class="w-1/1 flex flex-col justify-center">
+            <span class="text-xl text-gray-900 text-center">調整帳務</span>
+            <div class="divider divider-primary"></div>
+        </div>
+
         <SettingFinance :title="props.title" :account="props.account" @modal-status="modalStatus" />
     </div>
 </dialog>

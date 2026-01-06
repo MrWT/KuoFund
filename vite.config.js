@@ -21,4 +21,16 @@ export default defineConfig({
       '.ngrok-free.app', // Allow a specific IP address
     ],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Set 'assetFileNames' to a fixed name and path
+        assetFileNames: 'KuoFund/assests/index-[hash].css', 
+        
+        // Optional: you can also set specific names for JS entry files and chunks
+        entryFileNames: 'KuoFund/assests/index-[hash].js',
+        // chunkFileNames: 'chunk.[hash].js', 
+      }
+    }
+  }
 })
