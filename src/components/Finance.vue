@@ -317,11 +317,11 @@
 <div class="w-1/1 h-11/12">
     <div class="flex-none w-1/1 flex flex-col">
         <div class="w-1/1 flex flex-row">
-            <div class="w-3/4 text-3xl text-center p-2 rounded-xl" 
+            <div class="w-3/4 md:w-5/6 text-3xl text-center p-2 rounded-xl" 
                  :class="{'bg-gray-200': funds_total === 0, 'bg-green-200': funds_total > 0, 'bg-red-200': funds_total < 0}">
                 結餘：$ {{ new Intl.NumberFormat().format( funds_total ) }}
             </div>
-            <div class="w-1/4 flex flex-row justify-end items-center gap-2">
+            <div class="w-1/4 md:w-1/6 flex flex-row justify-end items-center gap-2">
                 <a class="cursor-pointer text-gray-400 hover:text-gray-900" @click="openSearchModal">
                     <svg class="size-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
