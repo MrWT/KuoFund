@@ -112,6 +112,14 @@
                 <input type="radio" v-model="financeObj.type" value="IN" />
                 存款
             </label>
+            <label class="text-green-900 text-lg w-1/2">
+                <input type="radio" v-model="financeObj.type" value="IN_INTEREST" />
+                利息
+            </label>
+            <label class="text-green-900 text-lg w-1/2">
+                <input type="radio" v-model="financeObj.type" value="IN_SPONSOR" />
+                贊助
+            </label>
             <label class="text-red-900 text-lg w-1/2">
                 <input type="radio" v-model="financeObj.type" value="OUT" />
                 提領

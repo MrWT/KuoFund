@@ -24,6 +24,7 @@
     let funds = reactive([]);
     let funds_months = reactive([]);
     let sel_dataMN = ref("");
+    let sel_dataMN_pCount = ref(0);
     let todayMN = ref(moment().format("YYYY-MM"));
 
     let delRecordObj = reactive({});
@@ -156,6 +157,8 @@
     function fetchFunds(dataYM){
         console.log("fetchFunds.dataYM=", dataYM);
 
+        sel_dataMN_pCount.value = 0;
+
         let fetchFundsPromise = fetchData({
             api: "get_finance",
             data: {
@@ -176,6 +179,11 @@
                     }
                 }
                 funds.push(fundObj);
+
+                // 統計"儲值"人數
+                if(fundObj["type"] === "IN"){
+                    sel_dataMN_pCount.value += 1;
+                }
             });
             // 排序
             funds.sort((x, y) => {
@@ -339,19 +347,28 @@
             <button v-for="(f_mn, f_mn_i) in funds_months" @click="clickDataMN(f_mn)"
                         class="btn btn-ghost rounded-none border-0 border-b-2 hover:border-rose-500 mx-1"
                         :class="{'border-amber-600': f_mn === sel_dataMN, 'border-gray-500': f_mn !== sel_dataMN}">
-                {{ f_mn }}
+                {{ f_mn }} 
             </button>
         </div>
     </div>
     <div class="flex-1 w-1/1 h-11/12 flex flex-col overflow-y-auto">
+        <div class="text-center w-1/1 mt-2 text-xl rounded-xl p-2 sticky top-2 z-5" 
+            :class="{'bg-red-300': sel_dataMN_pCount < funds_members.length, 'bg-gray-300': sel_dataMN_pCount === funds_members.length}">
+            已有人數&nbsp;/&nbsp;應有人數&nbsp;=&nbsp;
+            <span>{{ sel_dataMN_pCount }}</span>
+            &nbsp;/&nbsp;
+            <span>{{ funds_members.length }}</span>
+        </div>
         <div v-for="(fundObj, fund_i) in funds" class="chat"
-            :class="{ 'chat-start': fundObj.type === 'IN', 'chat-end': fundObj.type === 'OUT' }">
+            :class="{ 'chat-start': fundObj.type === 'IN' || fundObj.type === 'IN_INTEREST' || fundObj.type === 'IN_SPONSOR', 'chat-end': fundObj.type === 'OUT' }">
             <div class="chat-image avatar">
                 <div class="avatar avatar-placeholder">
                     <div class="w-12 rounded-full"
-                        :class="{'bg-green-900': fundObj.type === 'IN', 'bg-red-900': fundObj.type === 'OUT'}">
+                        :class="{'bg-green-900': fundObj.type === 'IN', 'bg-green-700': fundObj.type === 'IN_INTEREST', 'bg-green-500': fundObj.type === 'IN_SPONSOR', 'bg-red-900': fundObj.type === 'OUT'}">
                         <span v-if="fundObj.type === 'IN'" class="text-lg text-white">儲值</span>
-                        <span v-if="fundObj.type === 'OUT'" class="text-lg text-white">提領</span>
+                        <span v-else-if="fundObj.type === 'IN_INTEREST'" class="text-lg text-white">利息</span>
+                        <span v-else-if="fundObj.type === 'IN_SPONSOR'" class="text-lg text-white">贊助</span>
+                        <span v-else-if="fundObj.type === 'OUT'" class="text-lg text-white">提領</span>
                     </div>
                 </div>
             </div>
@@ -360,13 +377,13 @@
                 <time class="text-base opacity-50">{{ fundObj.date }}</time>
             </div>
             <div class="chat-bubble">
-                <span v-if="props.user_role === 'admin_kf' && todayMN <= sel_dataMN" class="mr-2 font-black text-red-900 cursor-pointer" @click="popupDelConfirmModal(fundObj)">X</span>
+                <span v-if="props.user_role === 'admin_kf' && todayMN <= sel_dataMN && fundObj.type !== 'IN_INTEREST'" class="mr-2 font-black text-red-900 cursor-pointer" @click="popupDelConfirmModal(fundObj)">X</span>
                 $ {{ new Intl.NumberFormat().format( fundObj.money ) }}
                 <span v-if="fundObj.memo !== ''">( {{ fundObj.memo }} )</span>
             </div>
         </div>
-        <div v-if="funds.length === 0" class="text-3xl text-center w-1/1">
-            請稍等, 查詢資料中<span class="loading loading-dots loading-xs"></span>
+        <div v-if="funds.length === 0" class="text-3xl text-center w-1/1 mt-10">
+            請稍等, 查詢資料中<span class="loading loading-dots loading-xs ml-2"></span>
         </div>
     </div>
 </div>
