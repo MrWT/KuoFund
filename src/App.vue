@@ -321,7 +321,9 @@
         </div>
     </div>
 
-    <Login v-if="signinStatus === false" class="w-1/1 h-1/1" @signin="signin" @popup-message="popupMessage" />
+    <div v-if="signinStatus === false" class="w-1/1 h-1/1 p-2">
+        <Login @signin="signin" @popup-message="popupMessage" />
+    </div>
 
     <div v-if="signinStatus === true" class="navbar bg-base-100 shadow-sm z-[51] sticky top-0">
         <div class="navbar-start">
