@@ -339,11 +339,7 @@
             </div>
         </div>
         <div class="navbar-center items-center">
-            <a v-if="userInfo.account && userInfo.account.toUpperCase() !== 'KUOFAMILY'" class="cursor-pointer bg-transparent border-0 border-yellow-300 hover:border-b-2" @click="gotoPage('gallery')">
-                <span class="text-2xl">{{ appSetting.title }}</span>
-            </a>
-
-            <span v-if="userInfo.account && userInfo.account.toUpperCase() === 'KUOFAMILY'" class="text-2xl">
+            <span v-if="userInfo.account" class="text-2xl">
                 {{ appSetting.title }}
             </span>
 
@@ -353,7 +349,6 @@
                 </span> 
                 {{ selComponentName }}
             </span>
-
         </div>
         <div class="navbar-end gap-2">
             <!-- readme -->
