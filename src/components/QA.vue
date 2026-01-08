@@ -28,8 +28,7 @@
     let chat_room_uuid = ref("INIT");
     let messages = reactive([]);
     let userInfo = reactive({});
-    let aiRoles = reactive([]);
-    let currentAiRole = reactive({});
+    let aiRole = reactive({});
     // 預設 prompt option
     let definedOptions = reactive([
         "基金會在哪成立?",
@@ -57,10 +56,6 @@
     }
     // 取得初始資料
     function fetchInitData(){
-        // 取得 AI 角色
-        let fetchPromise_aiRoles = fetchData({
-            api: "get_ai_role",
-        }, "AI");
         // 取得使用者資訊
         let fetchPromise_userInfo = fetchData({
             api: "get_user",
@@ -68,10 +63,10 @@
                 account: props.account,
             }
         });
-        Promise.all([fetchPromise_aiRoles, fetchPromise_userInfo]).then((values) => {
+        Promise.all([fetchPromise_userInfo]).then((values) => {
             console.log("fetchInitData.values=", values);
-            aiRoles = values[0];
-            userInfo = values[1];
+            userInfo = values[0];
+            aiRole = values[0]["ai_role"];
         });
     }
     // chat with ai
@@ -100,19 +95,8 @@
             chat_room_uuid.value = values[0]["chat_room_uuid"];
             let ai_role = "AI";
             let ai_msg = values[0]["message"];
-            let speaker = "";
-            let short_name = "";
-            aiRoles.forEach((roleObj, role_i) => {
-                if(roleObj["code"] === values[0]["ai_role"]){
-                    speaker = roleObj["name"];
-                    short_name = roleObj["short_name"];
-
-                    currentAiRole["speaker"] = roleObj["speaker"];
-                    currentAiRole["short_name"] = roleObj["short_name"];
-                    currentAiRole["nation"] = roleObj["nation"];
-                    currentAiRole["gender"] = roleObj["gender"];
-                }
-            });
+            let speaker = aiRole["name"];
+            let short_name = aiRole["short_name"];
 
             if(ai_msg.indexOf("ERROR:") === 0){
                 if(ai_msg.indexOf("ERROR:429 RESOURCE_EXHAUSTED") === 0){
