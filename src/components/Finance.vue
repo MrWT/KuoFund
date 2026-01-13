@@ -48,6 +48,9 @@
     // 查詢結果
     let searchResult = ref("");
 
+    // 選擇排序
+    let sortBy = ref("PARENT");
+
     // 初始化 component
     function init(){
         console.log("Finance.init");
@@ -186,20 +189,60 @@
                 }
             });
             // 排序
-            funds.sort((x, y) => {
-                // 依 code_name 排序
-                if(x["code_name"] > y["code_name"]) return 1;
-                if(x["code_name"] < y["code_name"]) return -1;
-                if(x["code_name"] === y["code_name"]){
-                    // 依日期排序
-                    if( x["date"] < y["date"] ) return 1;
-                    if( x["date"] > y["date"] ) return -1;
-                    if( x["date"] === y["date"] ) return 0;
-                }
-            });
+            sortBy.value = "DATE_BACK";
+            sortBySelect();
         });
 
     }
+    // 依選擇排序
+    function sortBySelect(){
+        if(sortBy.value === "DATE_BACK"){
+            // 依日期倒序
+            funds.sort((x, y) => {
+                if( x["date"] < y["date"] ) return 1;
+                if( x["date"] > y["date"] ) return -1;
+                if( x["date"] === y["date"] ){
+                    if(x["name"] > y["name"]) return 1;
+                    if(x["name"] < y["name"]) return -1;
+                    if(x["name"] === y["name"]) return 0;
+                }
+            });
+        }else  if(sortBy.value === "DATE"){
+            // 依日期排序
+            funds.sort((x, y) => {
+                if( x["date"] < y["date"] ) return -1;
+                if( x["date"] > y["date"] ) return 1;
+                if( x["date"] === y["date"] ){
+                    if(x["name"] > y["name"]) return 1;
+                    if(x["name"] < y["name"]) return -1;
+                    if(x["name"] === y["name"]) return 0;
+                }
+            });
+        }else if(sortBy.value === "NAME_BACK"){
+            // 依 name 倒序
+            funds.sort((x, y) => {
+                if(x["name"] > y["name"]) return 1;
+                if(x["name"] < y["name"]) return -1;
+                if(x["name"] === y["name"]){
+                    if( x["date"] < y["date"] ) return -1;
+                    if( x["date"] > y["date"] ) return 1;
+                    if( x["date"] === y["date"] ) return 0;
+                }
+            });
+        }else if(sortBy.value === "NAME"){
+            // 依 name 排序
+            funds.sort((x, y) => {
+                if(x["name"] > y["name"]) return -1;
+                if(x["name"] < y["name"]) return 1;
+                if(x["name"] === y["name"]){
+                    if( x["date"] < y["date"] ) return -1;
+                    if( x["date"] > y["date"] ) return 1;
+                    if( x["date"] === y["date"] ) return 0;
+                }
+            });
+        } 
+    }
+
     // 跳出失效再確認 modal
     function popupDelConfirmModal(delObj){
         delRecordObj["code_name"] = delObj["code_name"];
@@ -352,12 +395,23 @@
         </div>
     </div>
     <div class="flex-1 w-1/1 h-11/12 flex flex-col overflow-y-auto">
-        <div class="text-center w-1/1 mt-2 text-xl rounded-xl p-2 sticky top-2 z-5" 
-            :class="{'bg-red-300': sel_dataMN_pCount < funds_members.length, 'bg-gray-300': sel_dataMN_pCount === funds_members.length}">
-            已有人數&nbsp;/&nbsp;應有人數&nbsp;=&nbsp;
-            <span>{{ sel_dataMN_pCount }}</span>
-            &nbsp;/&nbsp;
-            <span>{{ funds_members.length }}</span>
+        <div class="flex flex-row w-1/1 mt-2 sticky top-2 z-5 gap-2">
+            <div class="text-center w-2/3 text-lg rounded-xl p-2" 
+                :class="{'bg-red-300': sel_dataMN_pCount < funds_members.length, 'bg-gray-300': sel_dataMN_pCount === funds_members.length}">
+
+                人數&nbsp;=&nbsp;
+                <span>{{ sel_dataMN_pCount }}</span>
+                &nbsp;/&nbsp;
+                <span>{{ funds_members.length }}</span>
+            </div>
+            <div class="w-1/3 place-content-end">
+                <select class="border rounded-xl p-2 w-1/1" v-model="sortBy" @change="sortBySelect">
+                    <option value="DATE">依日期排序</option>
+                    <option value="DATE_BACK">依日期倒序</option>
+                    <option value="NAME">依姓名排序</option>
+                    <option value="NAME_BACK">依姓名倒序</option>
+                </select>
+            </div>
         </div>
         <div v-for="(fundObj, fund_i) in funds" class="chat"
             :class="{ 'chat-start': fundObj.type === 'IN' || fundObj.type === 'IN_INTEREST' || fundObj.type === 'IN_SPONSOR', 'chat-end': fundObj.type === 'OUT' }">
