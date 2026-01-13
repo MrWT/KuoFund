@@ -413,69 +413,59 @@
 
 <!-- 帳務查詢 -->
 <dialog id="searchModal" class="modal">
-    <div class="modal-box bg-gray-200 rounded-box p-2 w-1/1 max-h-1/1">
+    <div class="modal-box bg-gray-200 rounded-box p-2 w-1/1 h-5/6">
         <form v-if="searchStatus !== 'SEARCHING'" method="dialog">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
         </form>
-        <div class="w-1/1 flex flex-col justify-center">
-            <span class="text-xl text-gray-900 text-center">帳務查詢</span>
-            <div class="divider divider-primary"></div>
-        </div>
-        <div class="w-1/1 flex flex-col overflow-y-auto">
-            <div class="w-1/1 grid grid-cols-6">
-                <div>&nbsp;</div>
-                <div class="col-span-4 col-start-2 flex flex-row">
-                    <div class="flex-1">
-                        <div class="w-1/1 flex flex-row p-2">
-                            <div class="flex-none pr-2">
-                                時間:
-                            </div>
-                            <div class="flex-1">
-                                <select v-model="promptTime" class="w-1/1 border" :disabled="searchStatus === 'SEARCHING'">
-                                    <option v-for="(tObj, t_i) in promptOptions.time" :value="tObj.value">{{ tObj.text }}</option>
-                                </select>
-                            </div>
+        <div class="w-1/1 h-1/1 flex flex-col justify-center">
+            <div class="flex-none w-1/1">
+                <span class="text-xl text-gray-900 text-center">帳務查詢</span>
+                <div class="divider divider-primary"></div>
+            </div>
+            <div class="flex-1 w-1/1 flex-col gap-2">
+                <div class="w-1/1 flex-none flex flex-col gap-2">
+                    <div class="w-1/1 flex flex-row px-3">
+                        <span class="flex-none pr-2">時間:</span>
+                        <select v-model="promptTime" class="flex-1 border" :disabled="searchStatus === 'SEARCHING'">
+                            <option v-for="(tObj, t_i) in promptOptions.time" :value="tObj.value">{{ tObj.text }}</option>
+                        </select>
+                    </div>
+                    <div class="w-1/1 flex flex-row px-3">
+                        <span class="flex-none pr-2">成員:</span>
+                        <select v-model="promptMember" class="flex-1 border" :disabled="searchStatus === 'SEARCHING'">
+                            <option v-for="(mObj, m_i) in promptOptions.member" :value="mObj.value">{{ mObj.text }}</option>
+                        </select>
+                    </div>
+                    <div class="w-1/1 flex flex-row justify-start px-3">
+                        <div class="flex-none pr-2">
+                            排序:
                         </div>
-                        <div class="w-1/1 flex flex-row p-2">
-                            <div class="flex-none pr-2">
-                                成員:
+                        <div class="flex-1 flex flex-row gap-2">
+                            <div class="flex flex-row">
+                                <input type="radio" v-model="promptSort" value="由晚到早" />
+                                <span>由晚到早</span>
                             </div>
-                            <div class="flex-1">
-                                <select v-model="promptMember" class="w-1/1 border" :disabled="searchStatus === 'SEARCHING'">
-                                    <option v-for="(mObj, m_i) in promptOptions.member" :value="mObj.value">{{ mObj.text }}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="w-1/1 flex flex-row p-2">
-                            <div class="flex-none pr-2">
-                                排序:
-                            </div>
-                            <div class="flex-1">
-                                <label>
-                                    <input type="radio" v-model="promptSort" value="由晚到早" />
-                                    由晚到早
-                                </label>
-                                <label>
-                                    <input type="radio" v-model="promptSort" value="由早到晚" />
-                                    由早到晚
-                                </label>
+                            <div class="flex flex-row">
+                                <input type="radio" v-model="promptSort" value="由早到晚" />
+                                <span>由早到晚</span>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-none">
-                        <button class="btn w-20 rounded-lg h-1/1 bg-gray-800 text-gray-100 hover:bg-yellow-100 hover:text-gray-800" :disabled="searchStatus === 'SEARCHING'" @click.stop="doSearch">
-                            <span v-if="searchStatus !== 'SEARCHING'" >查詢</span>  
-                            <span v-if="searchStatus === 'SEARCHING'" class="loading loading-spinner loading-xs"></span>
-                        </button>
+                    <div class="flex-none w-1/1 justify-items-center">
+                        <div class="w-1/2 cursor-pointer rounded-xl p-3 text-center bg-gray-800 text-gray-100 hover:bg-yellow-100 hover:text-gray-800" @click.stop="doSearch">
+                            <a :disabled="searchStatus === 'SEARCHING'">
+                                <span v-if="searchStatus !== 'SEARCHING'" class="h-1/1 w-1/1">查詢</span>  
+                                <span v-if="searchStatus === 'SEARCHING'" class="loading loading-spinner loading-xs"></span>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="divider divider-primary"></div>
-            <div class="w-1/1 h-80 p-5">
-                <label class="h-1/1">
-                    查詢結果:
-                    <textarea class="textarea w-1/1 h-4/5" readonly>{{ searchResult }}</textarea>
-                </label>
+                <div class="w-1/1 flex flex-col flex-1 p-3 h-2/3">
+                    <div class="flex-none w-1/1 pr-2">
+                        查詢結果:
+                    </div>
+                    <textarea class="textarea w-1/1 h-1/1 flex-1 border border-black" readonly>{{ searchResult }}</textarea>
+                </div>
             </div>
         </div>
     </div>
