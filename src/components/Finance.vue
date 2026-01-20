@@ -176,8 +176,8 @@
             }
            
         }).then(() => {
-            //sel_dataMN.value = moment().format("YYYY-MM");
-            sel_dataMN.value = "總結";
+            sel_dataMN.value = moment().format("YYYY-MM");
+            //sel_dataMN.value = "總結";
         });
     }
     // 選擇查閱的資料月份
@@ -440,8 +440,7 @@
                 series: [income, in_interest, in_sponsor, outcome],
                 labels: series_labels,
                 chart: {
-                    type: 'donut',
-                    width: "100%"
+                    type: "donut",
                 },
                 legend: {
                     position: 'bottom',
@@ -451,21 +450,73 @@
                         //console.log("tooltip.custom.series=", series);
                         //console.log("tooltip.custom.seriesIndex=", seriesIndex);
                         //console.log("tooltip.custom.dataPointIndex=", dataPointIndex);
-                        
+                        //console.log("tooltip.custom.w=", w);
+
                         let value = series[seriesIndex];
+                        let totalMoney = 0;
+                        series.forEach((v, v_i) => {
+                            totalMoney += v;
+                        });
+                        let percent = Math.floor( value * 10000 / totalMoney ) / 100;
+
                         let customElement = document.createElement('div')
                         customElement.style.padding = '10px'
-                        customElement.innerHTML = series_labels[seriesIndex] + " $" + new Intl.NumberFormat().format( value );
+                        customElement.innerHTML = series_labels[seriesIndex] + " $" + ( new Intl.NumberFormat().format( value ) ) + " ( " + percent + "% ) ";
 
-                        return customElement
+                        return customElement;
                     },
                 },
-            };
+                dataLabels: {
+                    enabled: true,
+                    textAnchor: 'start',
+                    formatter: function(val, opt) {
+                        //console.log("dataLabels.formatter.val=", val);
+                        //console.log("dataLabels.formatter.opt=", opt);
+
+                        let percent = Math.floor( val * 100 )/100;
+                        let seriesIndex = opt.seriesIndex;
+                        let label = opt.w.globals.labels[seriesIndex];
+                        let money = opt.w.globals.series[seriesIndex];
+                        //console.log("dataLabels.formatter.seriesIndex=", seriesIndex);
+                        //console.log("dataLabels.formatter.label=", label);
+                        //console.log("dataLabels.formatter.money=", money);
+
+                        return "$" + ( new Intl.NumberFormat().format( money ) ) + " ( " + percent + "% ) ";
+                    },
+                    offsetX: 0,
+                },
+                responsive: [
+                    {
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                width: "100%",
+                            },
+                        },
+                    },
+                    {
+                        breakpoint: 960,
+                        options: {
+                            chart: {
+                                width: "50%",
+                            },
+                        },
+                    },
+                    {
+                        breakpoint: 1200,
+                        options: {
+                            chart: {
+                                width: "40%",
+                            },
+                        },
+                    },
+                ]
+                
+           };
 
             let chart = new ApexCharts(document.querySelector("#pieChart"), options);
             chart.render();
         });
-
     }
 
     // 監聽 sel_dataMN
@@ -556,8 +607,8 @@
         </div>
     </div>
     <!-- 總結 -->
-    <div v-if="sel_dataMN === '總結'" class="flex-1 w-1/1 h-11/12 flex flex-col justify-center overflow-y-auto">
-        <div id="pieChart"></div>
+    <div v-if="sel_dataMN === '總結'" class="flex-1 w-1/1 h-11/12 flex flex-col place-content-center overflow-y-auto">
+        <div id="pieChart" class="w-1/1 flex flex-col place-items-center"></div>
     </div>
 </div>
 
