@@ -24,6 +24,8 @@
     let appState = ref("");
     let userMessage = ref("");
     let chatState = ref("TALKING");
+    let inputRef = ref(null);
+    let textareaRef = ref(null);
     // 聊天室 UUID
     let chat_room_uuid = ref("INIT");
     let messages = reactive([]);
@@ -171,6 +173,23 @@
         document.getElementById("promptModal").close();
     }
 
+    // 監聽
+    watch(userMessage, (newValue, oldValue) => {
+        //console.log("watch.userMessage.value=", userMessage.value);
+
+        try{
+            // Vue3 因資料改變 DOM 後觸發
+            nextTick(() => {
+                if(userMessage.value.length <= 20){
+                    inputRef.value.focus();
+                }else{
+                    textareaRef.value.focus();
+                }
+            });
+        }catch(ex){
+            console.log("watch.userMessage.exception=", ex);
+        }
+    });
 
 </script>
 
@@ -182,19 +201,24 @@
     <div class="w-1/1 shadow-2xl flex flex-col bg-white rounded-xl">
         <div class="w-1/1 flex flex-row">
             <div class="flex-1 p-2">
-                <textarea class="textarea w-1/1 h-1/1 rounded-xl" v-model="userMessage" placeholder="想說點什麼呢?" :disabled="chatState === 'TALKING'"></textarea>
+                <input v-if="userMessage.length <= 20" ref="inputRef" type="text" class="input w-1/1 h-1/1 rounded-xl p-2" v-model="userMessage" placeholder="想說點什麼呢?" :disabled="chatState === 'TALKING'" />
+                <textarea v-if="userMessage.length > 20" ref="textareaRef" class="textarea w-1/1 h-1/1 rounded-xl p-2" v-model="userMessage" placeholder="想說點什麼呢?" :disabled="chatState === 'TALKING'"></textarea>
             </div>
-            <div class="flex-none p-1 flex-col w-1/4 min-w-10 max-w-30 h-1/1 gap-1">
-                <button class="btn bg-blue-500/50 text-gray-900 hover:bg-gray-900 hover:text-gray-100 rounded-xl w-1/1 h-1/1" @click="send">
-                    <span v-if="chatState !== 'TALKING'">傳送</span>
+            <div class="flex-none p-1 flex flex-row gap-1">
+                <!-- 提詞機 -->
+                <a v-if="chatState !== 'TALKING'" title="提詞機" class="cursor-pointer p-1 bg-green-500/50 text-gray-500 hover:text-gray-900 rounded-xl flex place-items-center" @click="openPromptModal">
+                    <svg class="size-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h8m-8 6h8m-8 6h8M4 16a2 2 0 1 1 3.321 1.5L4 20h5M4 5l2-1v6m-2 0h4"/>
+                    </svg>
+                </a>        
+                <!-- 傳送 -->
+                <a title="傳送" class="cursor-pointer p-1 bg-blue-500/50 text-gray-500 hover:text-gray-900 rounded-xl flex place-items-center" @click="send">
                     <span v-if="chatState === 'TALKING'" class="loading loading-spinner loading-md"></span>
-                </button>
+                    <svg v-if="chatState !== 'TALKING'" class="size-6 rotate-90" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 18-7 3 7-18 7 18-7-3Zm0 0v-5"/>
+                    </svg>            
+                </a>        
             </div>
-        </div>
-        <div class="w-1/1 flex flex-row gap-1 p-1 overflow-x-auto">
-            <button class="btn rounded-xl bg-gray-900 text-white hover:bg-blue-300 hover:text-black" @click="openPromptModal">
-                提詞機
-            </button>
         </div>
     </div>
 
@@ -234,7 +258,7 @@
 <dialog id="promptModal" class="modal modal-end">
     <div class="modal-box h-4/5 w-4/5 flex flex-col bg-neutral-100">
         <div class="flex flex-col justify-center">
-            <span class="text-lg text-gray-900 text-center">聊天提詞機</span>
+            <span class="text-lg text-gray-900 text-center">Q&A 提詞機</span>
             <div class="divider divider-primary"></div>
         </div>
         <div class="h-3/4 md:h-4/5 w-1/1 flex flex-col overflow-y-auto gap-2 border rounded-2xl">
