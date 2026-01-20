@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, reactive, onMounted, watch } from 'vue'
+    import { ref, reactive, onMounted, watch, nextTick } from 'vue'
     import moment from 'moment'
     import { fetchData } from "@/composables/fetchData"
     
@@ -51,6 +51,29 @@
     // 選擇排序
     let sortBy = ref("PARENT");
 
+    /* ******************
+     * *** ApexCharts ***
+     * ****************** */
+    let series = reactive( [44, 55, 41, 17, 15] );
+    let chartOptions = reactive({
+        chart: {
+            type: 'donut',
+        },
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 200
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }]
+    });
+
+
+
     // 初始化 component
     function init(){
         console.log("Finance.init");
@@ -89,6 +112,7 @@
             {
                 // clear month list
                 funds_months.splice(0, funds_months.length);
+
                 values[1].forEach((fmn, fmn_i) => {
                     funds_months.push(fmn);
                 });
@@ -106,6 +130,7 @@
                     }
                     return 0;
                 });
+                funds_months.unshift("總結");
 
                 // 查詢帳務 - 帳務月份
                 {
@@ -113,10 +138,12 @@
                     promptOptions.time.splice(0, promptOptions.time.length);
                     promptOptions.time.push({ value: "All", text: "All", });
                     funds_months.forEach((fmn, fmn_i) => {
-                        let f_fmn = fmn.split("-")[0] + " 年 " + fmn.split("-")[1] +  " 月 ";
-                        promptOptions.time.push(
-                            { value: f_fmn, text: f_fmn, }
-                        );
+                        if(fmn !== "總結"){
+                            let f_fmn = fmn.split("-")[0] + " 年 " + fmn.split("-")[1] +  " 月 ";
+                            promptOptions.time.push(
+                                { value: f_fmn, text: f_fmn, }
+                            );
+                        }
                     });
                 }
             }
@@ -135,7 +162,7 @@
                     funds_members.push(memObj);
                 });
 
-                 // 查詢帳務 - 成員們
+                // 查詢帳務 - 成員們
                 {
                     // clear member list
                     promptOptions.member.splice(0, promptOptions.member.length);
@@ -149,7 +176,8 @@
             }
            
         }).then(() => {
-            sel_dataMN.value = moment().format("YYYY-MM");
+            //sel_dataMN.value = moment().format("YYYY-MM");
+            sel_dataMN.value = "總結";
         });
     }
     // 選擇查閱的資料月份
@@ -160,39 +188,85 @@
     function fetchFunds(dataYM){
         console.log("fetchFunds.dataYM=", dataYM);
 
-        sel_dataMN_pCount.value = 0;
-
-        let fetchFundsPromise = fetchData({
-            api: "get_finance",
-            data: {
-                dataYM: dataYM,
-            },
-        }, "KUO-FUNDS");
-        Promise.all([fetchFundsPromise]).then((values) => {
-            console.log("fetchFundsPromise.values=", values);
-
+        if(dataYM === "總結"){
+            sel_dataMN_pCount.value = 0;
             funds.splice(0, funds.length);
-            values[0].forEach((fundObj, f_i) => {
-                // 找到紀錄姓名
-                for(let mem_i = 0; mem_i < funds_members.length; mem_i++){
-                    let memObj = funds_members[mem_i];
-                    if(memObj["code_name"] === fundObj["code_name"]){
-                        fundObj["name"] = memObj["name"];
-                        break;
-                    }
-                }
-                funds.push(fundObj);
 
-                // 統計"儲值"人數
-                if(fundObj["type"] === "IN"){
-                    sel_dataMN_pCount.value += 1;
+            let fetchPromiseList = [];
+            funds_months.forEach((dataYM, ym_i) => {
+                //if(dataYM !== "總結" && dataYM !== "2025-10"){
+                if(dataYM !== "總結"){
+                    fetchPromiseList.push( 
+                        fetchData({
+                            api: "get_finance",
+                            data: {
+                                dataYM: dataYM,
+                            },
+                        }, "KUO-FUNDS")
+                    );
                 }
             });
-            // 排序
-            sortBy.value = "DATE_BACK";
-            sortBySelect();
-        });
+            Promise.all(fetchPromiseList).then((values) => {
+                console.log("fetchPromiseList.values=", values);
+                let income = 0;
+                let in_interest = 0;
+                let in_sponsor = 0;
+                let outcome = 0;
 
+                values.forEach((mnDataList, mn_i) => {
+                    mnDataList.forEach((dataObj, data_i) => {
+                        switch(dataObj["type"]){
+                            case "IN": 
+                                income += parseInt( dataObj["money"] );
+                                break;
+                            case "IN_INTEREST": 
+                                in_interest += parseInt( dataObj["money"] );
+                                break;
+                            case "IN_SPONSOR": 
+                                in_sponsor += parseInt( dataObj["money"] );
+                                break;
+                            case "OUT": 
+                                outcome += parseInt( dataObj["money"] );
+                                break;
+                        }
+                    });
+                });
+                drawChart(income, in_interest, in_sponsor, outcome);
+            });
+        }else{
+            // 每個月
+            sel_dataMN_pCount.value = 0;
+            let fetchFundsPromise = fetchData({
+                api: "get_finance",
+                data: {
+                    dataYM: dataYM,
+                },
+            }, "KUO-FUNDS");
+            Promise.all([fetchFundsPromise]).then((values) => {
+                console.log("fetchFundsPromise.values=", values);
+
+                funds.splice(0, funds.length);
+                values[0].forEach((fundObj, f_i) => {
+                    // 找到紀錄姓名
+                    for(let mem_i = 0; mem_i < funds_members.length; mem_i++){
+                        let memObj = funds_members[mem_i];
+                        if(memObj["code_name"] === fundObj["code_name"]){
+                            fundObj["name"] = memObj["name"];
+                            break;
+                        }
+                    }
+                    funds.push(fundObj);
+
+                    // 統計"儲值"人數
+                    if(fundObj["type"] === "IN"){
+                        sel_dataMN_pCount.value += 1;
+                    }
+                });
+                // 排序
+                sortBy.value = "DATE_BACK";
+                sortBySelect();
+            });
+        }
     }
     // 依選擇排序
     function sortBySelect(){
@@ -352,6 +426,47 @@
 
         closeSettingModal();
     }
+    // 繪畫 donut chart
+    function drawChart(income, in_interest, in_sponsor, outcome){
+        console.log("drawChart.income=", income);
+        console.log("drawChart.in_interest=", in_interest);
+        console.log("drawChart.in_sponsor=", in_sponsor);
+        console.log("drawChart.outcome=", outcome);
+
+        nextTick(() => {
+            let series_labels = ['儲值', '利息', '贊助', '提領', ];
+
+            let options = {
+                series: [income, in_interest, in_sponsor, outcome],
+                labels: series_labels,
+                chart: {
+                    type: 'donut',
+                    width: "100%"
+                },
+                legend: {
+                    position: 'bottom',
+                },
+                tooltip: {
+                    custom: function({series, seriesIndex, dataPointIndex, w}) {
+                        //console.log("tooltip.custom.series=", series);
+                        //console.log("tooltip.custom.seriesIndex=", seriesIndex);
+                        //console.log("tooltip.custom.dataPointIndex=", dataPointIndex);
+                        
+                        let value = series[seriesIndex];
+                        let customElement = document.createElement('div')
+                        customElement.style.padding = '10px'
+                        customElement.innerHTML = series_labels[seriesIndex] + " $" + new Intl.NumberFormat().format( value );
+
+                        return customElement
+                    },
+                },
+            };
+
+            let chart = new ApexCharts(document.querySelector("#pieChart"), options);
+            chart.render();
+        });
+
+    }
 
     // 監聽 sel_dataMN
     watch(sel_dataMN, (newDataMN, oldDataMN) => {
@@ -394,7 +509,7 @@
             </button>
         </div>
     </div>
-    <div class="flex-1 w-1/1 h-11/12 flex flex-col overflow-y-auto">
+    <div v-if="sel_dataMN !== '總結'" class="flex-1 w-1/1 h-11/12 flex flex-col overflow-y-auto">
         <div class="flex flex-row w-1/1 mt-2 sticky top-2 z-5 gap-2">
             <div class="text-center w-2/3 text-lg rounded-xl p-2" 
                 :class="{'bg-red-300': sel_dataMN_pCount < funds_members.length, 'bg-gray-300': sel_dataMN_pCount === funds_members.length}">
@@ -439,6 +554,10 @@
         <div v-if="funds.length === 0" class="text-3xl text-center w-1/1 mt-10">
             請稍等, 查詢資料中<span class="loading loading-dots loading-xs ml-2"></span>
         </div>
+    </div>
+    <!-- 總結 -->
+    <div v-if="sel_dataMN === '總結'" class="flex-1 w-1/1 h-11/12 flex flex-col justify-center overflow-y-auto">
+        <div id="pieChart"></div>
     </div>
 </div>
 
