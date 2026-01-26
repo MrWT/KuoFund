@@ -200,17 +200,19 @@
     <!-- function button bar -->
     <div class="w-1/1 shadow-2xl flex flex-col bg-white rounded-xl">
         <div class="w-1/1 flex flex-row">
+            <div v-if="chatState !== 'TALKING'" class="flex-none p-1 flex flex-row gap-1">
+                <!-- 提詞機 -->
+                <a title="提詞機" class="cursor-pointer p-1 bg-green-500/50 text-gray-500 hover:text-gray-900 rounded-xl flex place-items-center" @click="openPromptModal">
+                    <svg class="size-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h8m-8 6h8m-8 6h8M4 16a2 2 0 1 1 3.321 1.5L4 20h5M4 5l2-1v6m-2 0h4"/>
+                    </svg>
+                </a>        
+            </div>
             <div class="flex-1 p-2">
                 <input v-if="userMessage.length <= 20" ref="inputRef" type="text" class="input w-1/1 h-1/1 rounded-xl p-2" v-model="userMessage" placeholder="想說點什麼呢?" :disabled="chatState === 'TALKING'" />
                 <textarea v-if="userMessage.length > 20" ref="textareaRef" class="textarea w-1/1 h-1/1 rounded-xl p-2" v-model="userMessage" placeholder="想說點什麼呢?" :disabled="chatState === 'TALKING'"></textarea>
             </div>
             <div class="flex-none p-1 flex flex-row gap-1">
-                <!-- 提詞機 -->
-                <a v-if="chatState !== 'TALKING'" title="提詞機" class="cursor-pointer p-1 bg-green-500/50 text-gray-500 hover:text-gray-900 rounded-xl flex place-items-center" @click="openPromptModal">
-                    <svg class="size-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h8m-8 6h8m-8 6h8M4 16a2 2 0 1 1 3.321 1.5L4 20h5M4 5l2-1v6m-2 0h4"/>
-                    </svg>
-                </a>        
                 <!-- 傳送 -->
                 <a title="傳送" class="cursor-pointer p-1 bg-blue-500/50 text-gray-500 hover:text-gray-900 rounded-xl flex place-items-center" @click="send">
                     <span v-if="chatState === 'TALKING'" class="loading loading-spinner loading-md"></span>
