@@ -46,7 +46,7 @@
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
             <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-pink-200 font-black z-10 sticky top-0">
-                基金成立的意義
+                我們的基金
             </li>
 
             <li class="list-row">
@@ -56,8 +56,24 @@
                     </svg>
                 </div>
                 <div class="list-col-grow">
-                    <div class="text-base">一切都源於愛</div>
-                    <div class="text-xs uppercase font-semibold opacity-60">對阿嬤的愛 / 對長輩的回饋 / 對平輩的幫助 / 對晚輩的照顧</div>
+                    <div class="text-base">成立的起源</div>
+                    <div class="text-xs uppercase font-semibold opacity-60">
+                        一切都源於愛 - 對阿嬤的愛
+                    </div>
+                </div>
+            </li>
+
+            <li class="list-row">
+                <div>
+                    <svg class="size-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z"/>
+                    </svg>
+                </div>
+                <div class="list-col-grow">
+                    <div class="text-base">基金的意義</div>
+                    <div class="text-xs uppercase font-semibold opacity-60">
+                        阿嬤待人處事精神的傳承與實踐 - 關懷家人 / 照顧家人
+                    </div>
                 </div>
             </li>
         </ul>
@@ -66,7 +82,7 @@
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
             <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-green-200 z-10 font-black sticky top-0">
-                基金管理資訊
+                管理資訊
             </li>
 
             <li class="list-row">
