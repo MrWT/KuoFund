@@ -45,8 +45,28 @@
 <div class="w-1/1 h-1/1 flex flex-col gap-2 overflow-y-auto">
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
-            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-green-200 z-10 font-black" style="position: sticky; top: 0px;">
-                基金資訊
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-pink-200 font-black z-10 sticky top-0">
+                基金成立的意義
+            </li>
+
+            <li class="list-row">
+                <div>
+                    <svg class="size-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.01 6.001C6.5 1 1 8 5.782 13.001L12.011 20l6.23-7C23 8 17.5 1 12.01 6.002Z"/>
+                    </svg>
+                </div>
+                <div class="list-col-grow">
+                    <div class="text-base">一切都源於愛</div>
+                    <div class="text-xs uppercase font-semibold opacity-60">對阿嬤的愛 / 對長輩的回饋 / 對平輩的幫助 / 對晚輩的照顧</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="w-1/1">
+        <ul class="list bg-base-100 rounded-box shadow-md">
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-green-200 z-10 font-black sticky top-0">
+                基金管理資訊
             </li>
 
             <li class="list-row">
@@ -172,7 +192,7 @@
 
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
-            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-yellow-200 font-black z-10" style="position: sticky; top: 0px;">
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-yellow-200 font-black z-10 sticky top-0">
                 月費儲值方式
             </li>
   
@@ -250,9 +270,40 @@
                     </div>
                 </div>
             </li>
-            
         </ul>
+    </div>
 
+    <div class="w-1/1">
+        <ul class="list bg-base-100 rounded-box shadow-md">
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-blue-200 font-black z-10 sticky top-0">
+                基金代管人 - 重要時間點
+            </li>
+
+            <li class="list-row">
+                <div class="text-4xl font-thin opacity-30 tabular-nums">01</div>
+                <div>
+                    <svg class="size-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 17a2 2 0 0 1 2 2h-4a2 2 0 0 1 2-2Z"/>
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.815 9H16.5a2 2 0 1 0-1.03-3.707A1.87 1.87 0 0 0 15.5 5 1.992 1.992 0 0 0 12 3.69 1.992 1.992 0 0 0 8.5 5c.002.098.012.196.03.293A2 2 0 1 0 7.5 9h3.388m2.927-.985v3.604M10.228 9v2.574M15 16h.01M9 16h.01m11.962-4.426a1.805 1.805 0 0 1-1.74 1.326 1.893 1.893 0 0 1-1.811-1.326 1.9 1.9 0 0 1-3.621 0 1.8 1.8 0 0 1-1.749 1.326 1.98 1.98 0 0 1-1.87-1.326A1.763 1.763 0 0 1 8.46 12.9a2.035 2.035 0 0 1-1.905-1.326A1.9 1.9 0 0 1 4.74 12.9 1.805 1.805 0 0 1 3 11.574V12a9 9 0 0 0 18 0l-.028-.426Z"/>
+                    </svg>
+                </div>
+                <div class="list-col-grow">
+                    <div class="text-base">初二長輩回娘家餐費</div>
+                </div>
+            </li>
+
+            <li class="list-row">
+                <div class="text-4xl font-thin opacity-30 tabular-nums">02</div>
+                <div>
+                    <svg class="size-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.122 17.645a7.185 7.185 0 0 1-2.656 2.495 7.06 7.06 0 0 1-3.52.853 6.617 6.617 0 0 1-3.306-.718 6.73 6.73 0 0 1-2.54-2.266c-2.672-4.57.287-8.846.887-9.668A4.448 4.448 0 0 0 8.07 6.31 4.49 4.49 0 0 0 7.997 4c1.284.965 6.43 3.258 5.525 10.631 1.496-1.136 2.7-3.046 2.846-6.216 1.43 1.061 3.985 5.462 1.754 9.23Z"/>
+                    </svg>
+                </div>
+                <div class="list-col-grow">
+                    <div class="text-base">中秋烤肉餐費</div>
+                </div>
+            </li>
+        </ul>
     </div>
 
     <div class="divider"></div>
