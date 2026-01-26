@@ -17,7 +17,6 @@
     import Survey from './components/Survey.vue'
     import Finance from './components/Finance.vue'
     import Rule from './components/Rule.vue'
-    import Activity from './components/Activity.vue'
 
     onMounted(() => {
         console.log("App mounted.");
@@ -42,10 +41,6 @@
         bank_info: {},
         file_info: {},
         member: {},
-        activity_annouce_period: {
-            start: "",
-            end: "",
-        },
         agent: {
             name: "",
             phone: "",
@@ -188,8 +183,6 @@
                 appSetting.bank_info = appSettingObj["kf_bank_info"];
                 appSetting.file_info = appSettingObj["kf_file_info"];
                 appSetting.member = appSettingObj["kf_member"];
-                appSetting.activity_annouce_period.start = appSettingObj["kf_activity_annouce_period"]["value1"];
-                appSetting.activity_annouce_period.end = appSettingObj["kf_activity_annouce_period"]["value2"];
                 appSetting.agent.name = appSettingObj["agent_name"];
                 appSetting.agent.phone = appSettingObj["agent_phone"];
                 appSetting.agent.lineID = appSettingObj["agent_line_id"];
@@ -244,7 +237,7 @@
                 {
                     appSetting.funButtons.splice(0, appSetting.funButtons.length);
 
-                    let allFunctionKeys = ["finance_kf", "rule_kf", "activity_kf", "recall", "qa"];
+                    let allFunctionKeys = ["finance_kf", "rule_kf", "recall", "qa"];
                     let buildingFunctionKeys = [];
                     let buildingFunctionKeys_kf = [];
                     allFunctionKeys.forEach((funKey, fk_i) => {
@@ -378,7 +371,6 @@
         <Survey v-else-if="appSetting.contentComponent === 'survey'" :title="appSetting.title" :account="userInfo.account" />
         <Finance v-else-if="appSetting.contentComponent === 'finance_kf'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" @popup-message="popupMessage" />
         <Rule v-else-if="appSetting.contentComponent === 'rule_kf'" :title="appSetting.title" :account="userInfo.account" :funSetting="appSetting" />
-        <Activity v-else-if="appSetting.contentComponent === 'activity_kf'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" :annouce_period_start="appSetting.activity_annouce_period.start" :annouce_period_end="appSetting.activity_annouce_period.end" />
     </div>
 
     <!-- userInfo modal -->
