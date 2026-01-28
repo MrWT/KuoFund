@@ -18,12 +18,10 @@
     let members = reactive([]);
     let locations = reactive([ 
         "土城郭家", 
-        "北門區-雙春濱海遊憩區-愛莊園(Vanaheim)", 
         "山上區-809親子農場" 
     ]);
     let location_descList = reactive([
         "#",
-        "https://www.camptrip.com.tw/camp/%E9%9B%99%E6%98%A5%E6%BF%B1%E6%B5%B7%E9%81%8A%E6%86%A9%E5%8D%80-vanaheim%E6%84%9B%E8%8E%8A%E5%9C%92/",
         "https://anity0404.pixnet.net/blog/posts/8223469887",
     ]);
     let surveys = reactive([]);
