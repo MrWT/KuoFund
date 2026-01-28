@@ -15,6 +15,7 @@
     import QA from './components/QA.vue'
     import Recall from './components/Recall.vue'
     import Survey from './components/Survey.vue'
+    import Register from './components/Register.vue'
     import Finance from './components/Finance.vue'
     import Rule from './components/Rule.vue'
 
@@ -237,7 +238,7 @@
                 {
                     appSetting.funButtons.splice(0, appSetting.funButtons.length);
 
-                    let allFunctionKeys = ["finance_kf", "rule_kf", "recall", "qa", "survey"];
+                    let allFunctionKeys = ["finance_kf", "rule_kf", "recall", "qa", "survey", "register"];
                     let buildingFunctionKeys = [];
                     let buildingFunctionKeys_kf = [];
                     allFunctionKeys.forEach((funKey, fk_i) => {
@@ -369,6 +370,7 @@
         <QA v-else-if="appSetting.contentComponent === 'qa'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" @popup-message="popupMessage" />
         <Recall v-else-if="appSetting.contentComponent === 'recall'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" @popup-message="popupMessage" />
         <Survey v-else-if="appSetting.contentComponent === 'survey'" :title="appSetting.title" :account="userInfo.account" />
+        <Register v-else-if="appSetting.contentComponent === 'register'" :title="appSetting.title" :account="userInfo.account" />
         <Finance v-else-if="appSetting.contentComponent === 'finance_kf'" :title="appSetting.title" :account="userInfo.account" :user_role="userInfo.role" @popup-message="popupMessage" />
         <Rule v-else-if="appSetting.contentComponent === 'rule_kf'" :title="appSetting.title" :account="userInfo.account" :funSetting="appSetting" />
     </div>
