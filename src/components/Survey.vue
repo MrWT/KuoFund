@@ -16,7 +16,16 @@
     let appState = ref("ERROR");
     let appMessage = ref("");
     let members = reactive([]);
-    let locations = reactive([ "土城郭家", "雙春濱海遊憩區-愛莊園(Vanaheim)" ]);
+    let locations = reactive([ 
+        "土城郭家", 
+        "北門區-雙春濱海遊憩區-愛莊園(Vanaheim)", 
+        "山上區-809親子農場" 
+    ]);
+    let location_descList = reactive([
+        "#",
+        "https://www.camptrip.com.tw/camp/%E9%9B%99%E6%98%A5%E6%BF%B1%E6%B5%B7%E9%81%8A%E6%86%A9%E5%8D%80-vanaheim%E6%84%9B%E8%8E%8A%E5%9C%92/",
+        "https://anity0404.pixnet.net/blog/posts/8223469887",
+    ]);
     let surveys = reactive([]);
     let selMemCode = ref("");
     let selLocation = ref("");
@@ -141,30 +150,27 @@
             </div>
         </div>
 
-        <div class="w-1/1 flex flex-col place-items-center">
-            <div class="w-2/3 flex flex-row items-center gap-3">
-                <span class="flex-none p-1 px-2 bg-gray-200">姓名:</span>
-                <select class="flex-1 border border-1 p-1 text-lg rounded-xl" v-model="selMemCode">
-                    <option v-for="(memObj, mem_i) in members" :value="memObj.code_name">{{ memObj.name }}</option>
-                </select>
-            </div>
+        <div class="w-1/1 flex flex-row items-center gap-3">
+            <span class="flex-none p-1 px-2 bg-gray-200">姓名:</span>
+            <select class="flex-1 border border-1 p-1 text-lg rounded-xl" v-model="selMemCode">
+                <option v-for="(memObj, mem_i) in members" :value="memObj.code_name">{{ memObj.name }}</option>
+            </select>
         </div>
 
-        <div class="w-1/1 flex flex-col place-items-center">
-            <div class="w-2/3 flex flex-row items-start gap-3">
-                <span class="flex-none p-1 px-2 bg-gray-200">偏好地點:</span>
-                <div class="flex-1 flex flex-col">
-                    <div v-for="(loc, loc_i) in locations" class="w-1/1">
-                        <input type="radio" :value="loc" v-model="selLocation" />
-                        {{ loc }}
-                    </div>
+        <div class="w-1/1 flex flex-row items-start gap-3">
+            <span class="flex-none p-1 px-2 bg-gray-200">偏好地點:</span>
+            <div class="flex-1 flex flex-col">
+                <div v-for="(loc, loc_i) in locations" class="w-1/1">
+                    <input type="radio" :value="loc" v-model="selLocation" />
+                    <a :href="location_descList[loc_i]" target="_blank" class="px-5"
+                        :class="{'underline cursor-pointer': location_descList[loc_i] !== '#'}">{{ loc }}</a>
                 </div>
             </div>
         </div>
 
         <div v-if="appState === 'SUCCESS'" class="w-1/1 flex flex-col place-items-center border-0 border-t-1">
             <div class="w-2/3 flex flex-row items-start justify-center gap-3 mt-2">
-                <a class="w-1/2 rounded-xl p-2 flex flex-row justify-center items-center cursor-pointer bg-green-500 text-gray-500 hover:text-gray-900" @click="saveLocation">
+                <a class="w-1/2 rounded-xl p-2 flex flex-row justify-center items-center cursor-pointer bg-green-500/50 text-gray-900 hover:bg-green-500/100" @click="saveLocation">
                     <svg class="size-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m4 6 2 2 4-4m4-8v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1Z"/>
                     </svg>
