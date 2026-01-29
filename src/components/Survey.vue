@@ -50,19 +50,6 @@
         Promise.all([fetchPromise_members, fetchPromise_surveys]).then((values) => {
             console.log("fetchInitData.values=", values);
 
-            // 成員
-            {
-                members.splice(0, members.length);
-                values[0].forEach((memObj, mem_i) => {
-                    members.push({ code_name: memObj["code_name"], name: memObj["name"] });
-                });
-                members.sort((x, y) => {
-                    if(x["code_name"] > y["code_name"]) return 1;
-                    if(x["code_name"] < y["code_name"]) return -1;
-                    return 0;
-                });
-            }
-
             // survey
             {
                 surveys.splice(0, surveys.length);
@@ -71,6 +58,30 @@
                 });
                 console.log("surveys=", surveys);
             }
+
+            // 成員
+            {
+                members.splice(0, members.length);
+                values[0].forEach((memObj, mem_i) => {
+                    let didSurvey = false;
+                    surveys.forEach((surveyObj, survey_i) => {
+                        if(surveyObj["member_code"] === memObj["code_name"]){
+                            didSurvey = true;
+                        }
+                    });
+
+                    //console.log("name=" + memObj["name"] + " / did_survey=" + didSurvey);
+
+                    members.push({ code_name: memObj["code_name"], name: memObj["name"], did_survey: didSurvey });
+                });
+                members.sort((x, y) => {
+                    if(x["code_name"] > y["code_name"]) return 1;
+                    if(x["code_name"] < y["code_name"]) return -1;
+                    return 0;
+                });
+            }
+
+            
         });
     }
     // 確認地點
@@ -96,7 +107,8 @@
         }, "KUO-FUNDS");
         Promise.all([editPromise]).then((editValues) => {
             console.log(api_name + ".editValues=", editValues);
-
+            // 重新取得資料
+            fetchInitData();
         });
     }
     // 檢查數值
@@ -144,7 +156,10 @@
     <div class="w-1/1 h-1/1 flex flex-col gap-3">
         <div class="w-1/1 flex flex-col place-items-center">
             <div class="w-2/3 text-center text-2xl underline">
-                2026 中秋聚餐地點問卷調查
+                2026 中秋聚餐地點
+            </div>
+            <div class="w-2/3 text-center text-xl underline">
+                問卷調查
             </div>
         </div>
 
@@ -182,6 +197,18 @@
         <div v-if="appState === 'ERROR'" class="w-1/1 flex flex-col place-items-center">
             <div class="w-1/1 text-center rounded-xl text-xl p-2 bg-rose-300">
                 {{ appMessage }}
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="w-1/1 grid grid-cols-4 md:grid-cols-6 gap-4 overflow-y-auto">
+            <div v-for="(memObj, mem_i) in members">
+                <div class="w-1/1 h-1/1 text-center bg-gray-300 rounded-xl p-2">
+                    {{ memObj["name"] }}
+                    <div v-if="memObj.did_survey === true" class="flex-none badge badge-success text-xs">已填寫</div>
+                    <div v-if="memObj.did_survey === false" class="flex-none badge badge-error text-xs">未填寫</div>
+                </div>
             </div>
         </div>
     </div>
