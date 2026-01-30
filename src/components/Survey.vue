@@ -16,6 +16,8 @@
     let appState = ref("ERROR");
     let appMessage = ref("");
     let members = reactive([]);
+    let firstNameList = reactive(["謝", "黃", "李", "邱", "郭"]);
+    let fn_mem = reactive({});
     let locations = reactive([ 
         "土城郭家", 
         "山上區-809親子農場" 
@@ -61,6 +63,7 @@
 
             // 成員
             {
+                fn_mem = {};
                 members.splice(0, members.length);
                 values[0].forEach((memObj, mem_i) => {
                     let didSurvey = false;
@@ -79,9 +82,17 @@
                     if(x["code_name"] < y["code_name"]) return -1;
                     return 0;
                 });
-            }
+                firstNameList.forEach((fn, fn_i) => {
+                    fn_mem[fn] = [];
+                    members.forEach((memObj, mem_i) => {
+                        if(memObj["name"].substr(0, 1) === fn){
+                            fn_mem[fn].push( memObj );
+                        }
+                    });
+                });
 
-            
+                console.log("fn_mem=", fn_mem);
+            }            
         });
     }
     // 確認地點
@@ -202,12 +213,15 @@
 
         <div class="divider"></div>
 
-        <div class="w-1/1 grid grid-cols-4 md:grid-cols-6 gap-4 overflow-y-auto">
-            <div v-for="(memObj, mem_i) in members">
-                <div class="w-1/1 h-1/1 text-center bg-gray-300 rounded-xl p-2">
-                    {{ memObj["name"] }}
-                    <div v-if="memObj.did_survey === true" class="flex-none badge badge-success text-xs">已填寫</div>
-                    <div v-if="memObj.did_survey === false" class="flex-none badge badge-error text-xs">未填寫</div>
+        <div class="w-1/1 flex flex-col gap-2 overflow-y-auto">
+            <div v-for="(fn, fn_i) in firstNameList" class="w-1/1 grid grid-cols-4 gap-2">
+                <div v-for="(memObj, mem_i) in fn_mem[fn]">
+                    <div class="w-1/1 h-1/1 text-center rounded-xl p-2 hover:bg-yellow-200"
+                        :class="{'bg-gray-200': fn_i % 2 === 0, 'bg-gray-300': fn_i % 2 === 1}">
+                        {{ memObj["name"] }}
+                        <div v-if="memObj.did_survey === true" class="flex-none badge badge-success text-xs">已填寫</div>
+                        <div v-if="memObj.did_survey === false" class="flex-none badge badge-error text-xs">未填寫</div>
+                    </div>
                 </div>
             </div>
         </div>
