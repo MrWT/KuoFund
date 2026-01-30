@@ -45,7 +45,7 @@
 <div class="w-1/1 h-1/1 flex flex-col gap-2 overflow-y-auto">
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
-            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-pink-200 font-black z-10 sticky top-0">
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-pink-200 font-black z-10 sticky top-0 rounded-t-xl">
                 我們的基金
             </li>
 
@@ -81,7 +81,7 @@
 
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
-            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-green-200 z-10 font-black sticky top-0">
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-green-200 z-10 font-black sticky top-0 rounded-t-xl">
                 管理資訊
             </li>
 
@@ -208,7 +208,7 @@
 
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
-            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-yellow-200 font-black z-10 sticky top-0">
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-yellow-200 font-black z-10 sticky top-0 rounded-t-xl">
                 月費儲值方式
             </li>
   
@@ -291,8 +291,8 @@
 
     <div class="w-1/1">
         <ul class="list bg-base-100 rounded-box shadow-md">
-            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-blue-200 font-black z-10 sticky top-0">
-                基金代管人 - 重要時間點
+            <li class="p-4 pb-2 text-base opacity-80 tracking-wide bg-blue-200 font-black z-10 sticky top-0 rounded-t-xl">
+                2026 年基金重要時間點
             </li>
 
             <li class="list-row">
@@ -304,7 +304,7 @@
                     </svg>
                 </div>
                 <div class="list-col-grow">
-                    <div class="text-base">初二長輩回娘家餐費</div>
+                    <div class="text-base">初二長輩回娘家餐費( 02 月 18 日 )</div>
                 </div>
             </li>
 
@@ -316,7 +316,19 @@
                     </svg>
                 </div>
                 <div class="list-col-grow">
-                    <div class="text-base">中秋烤肉餐費</div>
+                    <div class="text-base">大廟刈香( 約 4 月份 )</div>
+                </div>
+            </li>
+
+            <li class="list-row">
+                <div class="text-4xl font-thin opacity-30 tabular-nums">03</div>
+                <div>
+                    <svg class="size-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15c1.65685 0 3-1.3431 3-3V6H4v6c0 1.6569 1.34315 3 3 3Zm0 0v5m-2 0h4M4 9h6m6.6083 4.4863c1.5775-.5067 2.4456-2.1962 1.939-3.77367L16.7126 4 11 5.83463l1.8346 5.71267c.5066 1.5775 2.1962 2.4456 3.7737 1.939Zm0 0 1.5288 4.7605m-1.9042.6115 3.8084-1.2231m-8.124-8.94426 5.7126-1.83463"/>
+                    </svg>
+                </div>
+                <div class="list-col-grow">
+                    <div class="text-base">中秋烤肉餐費( 09 月 26 日 )</div>
                 </div>
             </li>
         </ul>
